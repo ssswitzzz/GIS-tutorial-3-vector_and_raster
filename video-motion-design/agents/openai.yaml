@@ -1,0 +1,4 @@
+interface:
+  display_name: "Video Motion Design"
+  short_description: "通用视频脚本、分镜与动画制作规范"
+  default_prompt: "Use $video-motion-design to turn my script or idea into a polished animated video."

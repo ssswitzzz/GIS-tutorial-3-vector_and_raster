@@ -1,0 +1,16 @@
+*.srt
+*.txt
+*.docx
+*.mp3
+*.wav
+*.m4a
+3视频配音/
+.venv/
+__pycache__/
+node_modules/
+out/
+build/
+media/
+tmp-frame-*.png
+PixPin_*.png
+.DS_Store

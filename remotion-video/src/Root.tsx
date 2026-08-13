@@ -1,0 +1,37 @@
+import React from 'react';
+import { Composition } from 'remotion';
+import { GISOpening } from './GISOpening';
+import { EntityTypes } from './EntityTypes';
+import { RasterConcept } from './RasterConcept';
+
+export const Root: React.FC = () => {
+  return (
+    <>
+      <Composition
+        id="GISOpening"
+        component={GISOpening}
+        durationInFrames={1832}
+        fps={60}
+        width={3840}
+        height={2160}
+      />
+      <Composition
+        id="EntityTypes"
+        component={EntityTypes}
+        durationInFrames={4436}
+        fps={60}
+        width={3840}
+        height={2160}
+      />
+      <Composition
+        id="RasterConcept"
+        component={RasterConcept}
+        durationInFrames={7882}
+        fps={60}
+        width={3840}
+        height={2160}
+      />
+    </>
+  );
+};
+

@@ -1,0 +1,27 @@
+{
+  "name": "remotion-video",
+  "version": "1.0.0",
+  "description": "GIS vector and raster opening animation",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "remotion studio src/index.ts",
+    "check": "remotion compositions src/index.ts",
+    "render": "remotion render src/index.ts GISOpening out/gis-opening.mp4 --codec=h264 --crf=18"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "@remotion/cli": "^4.0.508",
+    "@remotion/player": "^4.0.508",
+    "@remotion/renderer": "^4.0.508",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "remotion": "^4.0.508"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4"
+  }
+}
