@@ -1,14 +1,13 @@
 import React from 'react';
 import {
   AbsoluteFill,
-  Easing,
   interpolate,
   spring,
   useCurrentFrame,
   useVideoConfig,
 } from 'remotion';
 import { PaperBackground } from './components/PaperBackground';
-import { clamp, MONO, palette, SERIF } from './theme';
+import { clamp, palette, SERIF } from './theme';
 
 // --- Subtitle Audio Timestamps (60 FPS) ---
 // Relative to start at 30.500s (Total duration: 73.933s = 4436 frames)
@@ -30,7 +29,7 @@ export const getTimestamps = (fps: number) => {
   };
 };
 
-// Bottom Chapter Progress Tracker (Centered, No English)
+// Bottom Chapter Progress Tracker (Centered, Pure Chinese, Source Han Serif)
 const BottomTracker: React.FC<{ frame: number }> = ({ frame }) => {
   const { fps } = useVideoConfig();
   const T = getTimestamps(fps);
@@ -108,7 +107,7 @@ const BottomTracker: React.FC<{ frame: number }> = ({ frame }) => {
   );
 };
 
-// Centered Top Header Panel (Concise text, No English, Centered Layout)
+// Centered Top Header Panel (Concise editorial headings)
 const CenteredHeadline: React.FC<{ frame: number }> = ({ frame }) => {
   const { fps } = useVideoConfig();
   const T = getTimestamps(fps);
@@ -175,6 +174,7 @@ const CenteredHeadline: React.FC<{ frame: number }> = ({ frame }) => {
           fontWeight: 700,
           letterSpacing: 2,
           marginBottom: 10,
+          whiteSpace: 'nowrap',
         }}
       >
         {eyebrow}
@@ -209,7 +209,9 @@ const CenteredHeadline: React.FC<{ frame: number }> = ({ frame }) => {
   );
 };
 
-// Stage 1: Redesigned Cognitive Model (Frames 0 - 412)
+// ==========================================
+// Stage 1: Redesigned High-Craft Cognitive Model (Frames 0 - 412)
+// ==========================================
 const CognitiveLens: React.FC<{ frame: number }> = ({ frame }) => {
   const { fps } = useVideoConfig();
   const T = getTimestamps(fps);
@@ -217,6 +219,7 @@ const CognitiveLens: React.FC<{ frame: number }> = ({ frame }) => {
   if (frame >= T.two_categories) return null;
 
   const enter = spring({ frame, fps, config: { damping: 20, stiffness: 80 } });
+  const pulse = Math.sin(frame * 0.08) * 4;
 
   return (
     <div
@@ -235,7 +238,8 @@ const CognitiveLens: React.FC<{ frame: number }> = ({ frame }) => {
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
-        padding: 36,
+        padding: 32,
+        fontFamily: SERIF,
       }}
     >
       {/* Header Inside Card */}
@@ -245,7 +249,7 @@ const CognitiveLens: React.FC<{ frame: number }> = ({ frame }) => {
           justifyContent: 'space-between',
           alignItems: 'center',
           borderBottom: `2px solid ${palette.sage}33`,
-          paddingBottom: 20,
+          paddingBottom: 16,
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
@@ -259,10 +263,10 @@ const CognitiveLens: React.FC<{ frame: number }> = ({ frame }) => {
           />
           <span
             style={{
-              fontFamily: SERIF,
               fontSize: 26,
               fontWeight: 700,
               color: palette.ink,
+              whiteSpace: 'nowrap',
             }}
           >
             人类大脑的空间认知解构过程
@@ -271,193 +275,464 @@ const CognitiveLens: React.FC<{ frame: number }> = ({ frame }) => {
 
         <span
           style={{
-            padding: '6px 20px',
+            padding: '6px 22px',
             background: palette.sage + '18',
             color: palette.sage,
-            fontFamily: SERIF,
             fontSize: 20,
             fontWeight: 700,
             borderRadius: 20,
+            whiteSpace: 'nowrap',
           }}
         >
-          物理现实 → 大脑解构
+          物理现实 ➔ 大脑抽象 ➔ 两大范式
         </span>
       </div>
 
-      {/* 3-Column Visual Process Diagram */}
+      {/* 3-Part Flow Container */}
       <div
         style={{
           flex: 1,
-          marginTop: 24,
+          marginTop: 18,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          gap: 32,
+          gap: 24,
         }}
       >
-        {/* Step 1: Real Physical World */}
+        {/* Step 1: Real Physical World (Artistic Landscape Vignette) */}
         <div
           style={{
             flex: 1,
             height: '100%',
             background: palette.paper,
-            border: `2px stroke ${palette.line}`,
+            border: `2px solid ${palette.line}`,
             borderRadius: 16,
-            padding: 24,
+            padding: '16px 18px',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            justifyContent: 'center',
+            justifyContent: 'space-between',
+            boxShadow: `0 8px 20px ${palette.ink}08`,
           }}
         >
           <div
             style={{
-              fontFamily: SERIF,
-              fontSize: 26,
-              fontWeight: 700,
-              color: palette.ink,
-              marginBottom: 16,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              width: '100%',
             }}
           >
-            ① 真实物理世界
+            <span
+              style={{
+                fontSize: 22,
+                fontWeight: 700,
+                color: palette.ink,
+                whiteSpace: 'nowrap',
+              }}
+            >
+              ① 真实物理世界
+            </span>
+            <span
+              style={{
+                fontSize: 16,
+                fontWeight: 700,
+                color: palette.sage,
+                background: palette.sage + '15',
+                padding: '3px 10px',
+                borderRadius: 12,
+                whiteSpace: 'nowrap',
+              }}
+            >
+              无限丰富
+            </span>
           </div>
-          <svg width="220" height="200" viewBox="0 0 220 200">
+
+          {/* Vignette Illustration */}
+          <svg width="270" height="240" viewBox="0 0 270 240">
+            <defs>
+              <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={palette.paper} />
+                <stop offset="100%" stopColor={palette.sage + '15'} />
+              </linearGradient>
+              <linearGradient id="mountFar" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={palette.sage + '44'} />
+                <stop offset="100%" stopColor={palette.sage + '18'} />
+              </linearGradient>
+              <linearGradient id="mountNear" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={palette.sage + '88'} />
+                <stop offset="100%" stopColor={palette.sage + '35'} />
+              </linearGradient>
+            </defs>
+
+            {/* Circular Map Portal Frame */}
             <circle
-              cx="110"
-              cy="100"
-              r="75"
-              fill={palette.sage + '15'}
+              cx="135"
+              cy="120"
+              r="105"
+              fill="url(#skyGrad)"
               stroke={palette.sage}
-              strokeWidth="3"
+              strokeWidth="2.5"
             />
+
+            {/* Sun / Temperature Radial Light */}
+            <circle
+              cx="185"
+              cy="65"
+              r="24"
+              fill={palette.amber + '40'}
+              stroke={palette.amber}
+              strokeWidth="1.5"
+              strokeDasharray="4 3"
+            />
+
+            {/* Atmospheric Isoline Waves */}
             <path
-              d="M50 140 Q 90 60 120 120 T 170 140"
-              fill="none"
-              stroke={palette.sage}
-              strokeWidth="4"
-            />
-            <rect
-              x="70"
-              y="110"
-              width="24"
-              height="32"
-              fill={palette.clay + '30'}
-              stroke={palette.clay}
-              strokeWidth="2"
-            />
-            <path
-              d="M40 90 C 80 120 130 60 180 100"
+              d="M 35 90 Q 90 65 140 85 T 235 70"
               fill="none"
               stroke={palette.amber}
-              strokeWidth="3"
+              strokeWidth="1.5"
               strokeDasharray="4 4"
+              opacity="0.85"
+            />
+            <path
+              d="M 32 110 Q 85 90 145 105 T 238 95"
+              fill="none"
+              stroke={palette.blue}
+              strokeWidth="1.5"
+              strokeDasharray="5 5"
+              opacity="0.7"
+            />
+
+            {/* Mountain Ridge Layers */}
+            <path
+              d="M 30 160 Q 75 90 120 130 T 210 100 L 240 160 L 240 220 L 30 220 Z"
+              fill="url(#mountFar)"
+            />
+            <path
+              d="M 30 180 Q 90 135 150 165 T 240 150 L 240 225 L 30 225 Z"
+              fill="url(#mountNear)"
+            />
+
+            {/* River Stream */}
+            <path
+              d="M 120 155 Q 140 180 125 200 T 110 225"
+              fill="none"
+              stroke={palette.blue}
+              strokeWidth="8"
+              strokeLinecap="round"
+              opacity="0.8"
+            />
+
+            {/* Little House (Discrete Object) */}
+            <g transform="translate(160, 160)">
+              <polygon
+                points="0,15 20,0 40,15"
+                fill={palette.clay}
+                stroke={palette.clay}
+                strokeWidth="1"
+              />
+              <rect
+                x="4"
+                y="15"
+                width="32"
+                height="26"
+                fill={palette.paperLight}
+                stroke={palette.clay}
+                strokeWidth="2"
+              />
+              <rect x="9" y="22" width="8" height="8" fill={palette.amber + '66'} />
+              <rect x="23" y="24" width="9" height="17" fill={palette.clay} />
+            </g>
+
+            {/* Forest Trees */}
+            <g transform="translate(60, 165)">
+              <rect x="10" y="16" width="4" height="14" fill={palette.amber} />
+              <circle cx="12" cy="12" r="14" fill={palette.sage} />
+              <circle cx="12" cy="10" r="11" fill={palette.sageLight} />
+            </g>
+            <g transform="translate(85, 172)">
+              <rect x="8" y="12" width="3" height="12" fill={palette.amber} />
+              <circle cx="9" cy="9" r="11" fill={palette.sage} />
+            </g>
+
+            {/* Reticle Boundary Crosshair Corner Marks */}
+            <path
+              d="M 135 15 L 135 25 M 135 215 L 135 225 M 30 120 L 40 120 M 230 120 L 240 120"
+              stroke={palette.inkSoft}
+              strokeWidth="2"
+              opacity="0.6"
             />
           </svg>
+
           <div
             style={{
-              fontFamily: SERIF,
-              fontSize: 20,
+              fontSize: 18,
               color: palette.inkSoft,
-              marginTop: 12,
               textAlign: 'center',
+              fontWeight: 600,
+              lineHeight: 1.4,
+              whiteSpace: 'nowrap',
             }}
           >
-            复杂、无限、现象交织
+            山川/湖泊/建筑/气温 纷繁交织
           </div>
         </div>
 
-        {/* Arrow 1 */}
+        {/* Dynamic Beam Flow 1 */}
         <div
           style={{
-            fontFamily: SERIF,
-            fontSize: 32,
-            fontWeight: 700,
-            color: palette.sage,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 6,
           }}
         >
-          ➔
+          <div
+            style={{
+              width: 38,
+              height: 3,
+              background: `linear-gradient(90deg, ${palette.sage}, ${palette.amber})`,
+              borderRadius: 2,
+            }}
+          />
+          <span style={{ fontSize: 18, fontWeight: 700, color: palette.sage }}>
+            输入
+          </span>
         </div>
 
-        {/* Step 2: Human Brain Cognitive Filter */}
+        {/* Step 2: Cognitive Prism / Brain Lens Filter */}
         <div
           style={{
-            flex: 1.2,
+            flex: 1.1,
             height: '100%',
             background: palette.paper,
             border: `2px solid ${palette.sage}`,
             borderRadius: 16,
-            padding: 24,
+            padding: '16px 18px',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            justifyContent: 'center',
+            justifyContent: 'space-between',
+            boxShadow: `0 12px 28px ${palette.sage}15`,
             position: 'relative',
           }}
         >
           <div
             style={{
-              fontFamily: SERIF,
-              fontSize: 26,
-              fontWeight: 700,
-              color: palette.sage,
-              marginBottom: 16,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              width: '100%',
             }}
           >
-            ② 大脑观察与抽象
+            <span
+              style={{
+                fontSize: 22,
+                fontWeight: 700,
+                color: palette.sage,
+                whiteSpace: 'nowrap',
+              }}
+            >
+              ② 大脑观察与抽象
+            </span>
+            <span
+              style={{
+                fontSize: 16,
+                fontWeight: 700,
+                color: palette.amber,
+                background: palette.amber + '18',
+                padding: '3px 10px',
+                borderRadius: 12,
+                whiteSpace: 'nowrap',
+              }}
+            >
+              双轨解构
+            </span>
           </div>
-          <svg width="240" height="200" viewBox="0 0 240 200">
-            <path
-              d="M 60 150 C 30 130 30 70 70 40 C 110 10 160 30 170 70 C 190 90 180 140 140 160 C 120 170 80 170 60 150 Z"
-              fill={palette.sage + '20'}
+
+          {/* Stylized Cognitive Prism / Splitter Graphic */}
+          <svg width="290" height="240" viewBox="0 0 290 240">
+            <defs>
+              <linearGradient id="prismGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stopColor={palette.sage + '30'} />
+                <stop offset="100%" stopColor={palette.paperLight} />
+              </linearGradient>
+            </defs>
+
+            {/* Cognitive Lens Diamond / Prism Shape */}
+            <polygon
+              points="145,25 220,120 145,215 70,120"
+              fill="url(#prismGrad)"
               stroke={palette.sage}
-              strokeWidth="4"
+              strokeWidth="3"
             />
-            <circle cx="120" cy="90" r="12" fill={palette.amber} />
-            <path
-              d="M 120 90 L 210 50"
+
+            {/* Inner Neural Nodes & Lattice */}
+            <line
+              x1="70"
+              y1="120"
+              x2="145"
+              y2="120"
+              stroke={palette.inkSoft}
+              strokeWidth="2"
+              strokeDasharray="4 3"
+            />
+            <line
+              x1="145"
+              y1="120"
+              x2="220"
+              y2="65"
               stroke={palette.clay}
-              strokeWidth="4"
-              strokeDasharray="6 4"
+              strokeWidth="3.5"
             />
-            <path
-              d="M 120 90 L 210 130"
+            <line
+              x1="145"
+              y1="120"
+              x2="220"
+              y2="175"
               stroke={palette.blue}
-              strokeWidth="4"
-              strokeDasharray="6 4"
+              strokeWidth="3.5"
             />
+
+            {/* Central Cognitive Hub Node */}
+            <circle
+              cx="145"
+              cy="120"
+              r={18 + pulse}
+              fill="none"
+              stroke={palette.amber}
+              strokeWidth="2"
+              opacity="0.7"
+            />
+            <circle
+              cx="145"
+              cy="120"
+              r="12"
+              fill={palette.amber}
+              stroke={palette.paperLight}
+              strokeWidth="2.5"
+            />
+
+            {/* Satellite Neural Nodes */}
+            <circle cx="115" cy="85" r="5" fill={palette.sage} />
+            <circle cx="115" cy="155" r="5" fill={palette.sage} />
+            <circle cx="175" cy="85" r="6" fill={palette.clay} />
+            <circle cx="175" cy="155" r="6" fill={palette.blue} />
+
+            <line
+              x1="115"
+              y1="85"
+              x2="145"
+              y2="120"
+              stroke={palette.sage}
+              strokeWidth="1.5"
+            />
+            <line
+              x1="115"
+              y1="155"
+              x2="145"
+              y2="120"
+              stroke={palette.sage}
+              strokeWidth="1.5"
+            />
+
+            {/* Incoming Multi-Ray */}
+            <path
+              d="M 15 120 L 70 120"
+              stroke={palette.ink}
+              strokeWidth="4"
+              strokeLinecap="round"
+            />
+
+            {/* Outgoing Distinct Classification Beams */}
+            {/* Top Beam: Discrete */}
+            <g transform="translate(0, -5)">
+              <path
+                d="M 220 70 L 280 45"
+                stroke={palette.clay}
+                strokeWidth="4"
+                strokeDasharray="6 4"
+              />
+              <polygon points="280,45 270,40 272,48" fill={palette.clay} />
+              <text
+                x="206"
+                y="34"
+                fontFamily={SERIF}
+                fontSize="17"
+                fontWeight="700"
+                fill={palette.clay}
+              >
+                边界分明 ➔
+              </text>
+            </g>
+
+            {/* Bottom Beam: Field */}
+            <g transform="translate(0, 5)">
+              <path
+                d="M 220 170 L 280 195"
+                stroke={palette.blue}
+                strokeWidth="4"
+                strokeDasharray="6 4"
+              />
+              <polygon points="280,195 272,192 270,200" fill={palette.blue} />
+              <text
+                x="206"
+                y="218"
+                fontFamily={SERIF}
+                fontSize="17"
+                fontWeight="700"
+                fill={palette.blue}
+              >
+                处处有值 ➔
+              </text>
+            </g>
           </svg>
+
           <div
             style={{
-              fontFamily: SERIF,
-              fontSize: 20,
+              fontSize: 18,
               color: palette.inkSoft,
-              marginTop: 12,
               textAlign: 'center',
+              fontWeight: 600,
+              lineHeight: 1.4,
+              whiteSpace: 'nowrap',
             }}
           >
-            将世界归类解构
+            空间解构为「离散」与「连续」
           </div>
         </div>
 
-        {/* Arrow 2 */}
+        {/* Dynamic Beam Flow 2 */}
         <div
           style={{
-            fontFamily: SERIF,
-            fontSize: 32,
-            fontWeight: 700,
-            color: palette.sage,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 6,
           }}
         >
-          ➔
+          <div
+            style={{
+              width: 38,
+              height: 3,
+              background: `linear-gradient(90deg, ${palette.amber}, ${palette.blue})`,
+              borderRadius: 2,
+            }}
+          />
+          <span style={{ fontSize: 18, fontWeight: 700, color: palette.blue }}>
+            分类
+          </span>
         </div>
 
-        {/* Step 3: Two Perception Outcomes */}
+        {/* Step 3: Two Structured Perception Outcomes (Restored Clean Large Layout, No English) */}
         <div
           style={{
-            flex: 1.3,
+            flex: 1.35,
             height: '100%',
             display: 'flex',
             flexDirection: 'column',
+            justifyContent: 'space-between',
             gap: 16,
           }}
         >
@@ -466,46 +741,49 @@ const CognitiveLens: React.FC<{ frame: number }> = ({ frame }) => {
             style={{
               flex: 1,
               background: palette.clay + '12',
-              border: `2px solid ${palette.clay}`,
-              borderRadius: 14,
-              padding: '16px 20px',
+              border: `2.5px solid ${palette.clay}`,
+              borderRadius: 16,
+              padding: '24px 28px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
+              boxShadow: `0 8px 24px ${palette.clay}15`,
             }}
           >
             <div>
               <div
                 style={{
-                  fontFamily: SERIF,
-                  fontSize: 24,
+                  fontSize: 30,
                   fontWeight: 700,
                   color: palette.clay,
+                  whiteSpace: 'nowrap',
                 }}
               >
                 离散对象
               </div>
               <div
                 style={{
-                  fontFamily: SERIF,
-                  fontSize: 18,
+                  fontSize: 22,
                   color: palette.inkSoft,
-                  marginTop: 4,
+                  marginTop: 8,
+                  fontWeight: 600,
+                  whiteSpace: 'nowrap',
                 }}
               >
-                建筑、树木、车辆 (界限分明)
+                建筑、树木、车辆（界限分明）
               </div>
             </div>
             <div
               style={{
-                fontFamily: SERIF,
-                fontSize: 18,
+                fontSize: 22,
                 fontWeight: 700,
                 color: palette.clay,
                 background: palette.paperLight,
-                padding: '6px 14px',
-                borderRadius: 6,
-                border: `1px solid ${palette.clay}44`,
+                padding: '8px 20px',
+                borderRadius: 20,
+                border: `1.5px solid ${palette.clay}`,
+                boxShadow: `0 4px 12px ${palette.clay}20`,
+                whiteSpace: 'nowrap',
               }}
             >
               独立可数
@@ -517,46 +795,49 @@ const CognitiveLens: React.FC<{ frame: number }> = ({ frame }) => {
             style={{
               flex: 1,
               background: palette.blue + '12',
-              border: `2px solid ${palette.blue}`,
-              borderRadius: 14,
-              padding: '16px 20px',
+              border: `2.5px solid ${palette.blue}`,
+              borderRadius: 16,
+              padding: '24px 28px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
+              boxShadow: `0 8px 24px ${palette.blue}15`,
             }}
           >
             <div>
               <div
                 style={{
-                  fontFamily: SERIF,
-                  fontSize: 24,
+                  fontSize: 30,
                   fontWeight: 700,
                   color: palette.blue,
+                  whiteSpace: 'nowrap',
                 }}
               >
                 连续场
               </div>
               <div
                 style={{
-                  fontFamily: SERIF,
-                  fontSize: 18,
+                  fontSize: 22,
                   color: palette.inkSoft,
-                  marginTop: 4,
+                  marginTop: 8,
+                  fontWeight: 600,
+                  whiteSpace: 'nowrap',
                 }}
               >
-                海拔、温度、噪声 (处处有值)
+                海拔、温度、噪声（处处有值）
               </div>
             </div>
             <div
               style={{
-                fontFamily: SERIF,
-                fontSize: 18,
+                fontSize: 22,
                 fontWeight: 700,
                 color: palette.blue,
                 background: palette.paperLight,
-                padding: '6px 14px',
-                borderRadius: 6,
-                border: `1px solid ${palette.blue}44`,
+                padding: '8px 20px',
+                borderRadius: 20,
+                border: `1.5px solid ${palette.blue}`,
+                boxShadow: `0 4px 12px ${palette.blue}20`,
+                whiteSpace: 'nowrap',
               }}
             >
               连续分布
@@ -568,7 +849,9 @@ const CognitiveLens: React.FC<{ frame: number }> = ({ frame }) => {
   );
 };
 
-// Stage 2: Centered Dual Branch Cards (Frames 412 - 646)
+// ==========================================
+// Stage 2: Centered Dual Branch Cards (Frames 412 - 1100)
+// ==========================================
 const DualBranchCards: React.FC<{ frame: number }> = ({ frame }) => {
   const { fps } = useVideoConfig();
   const T = getTimestamps(fps);
@@ -587,14 +870,15 @@ const DualBranchCards: React.FC<{ frame: number }> = ({ frame }) => {
         position: 'absolute',
         left: '50%',
         top: 260,
-        width: 1320,
+        width: 1340,
         height: 600,
         transform: `translateX(-50%) scale(${0.95 + enter * 0.05})`,
         display: 'flex',
-        gap: 48,
+        gap: 40,
         alignItems: 'center',
         justifyContent: 'center',
         opacity: enter,
+        fontFamily: SERIF,
       }}
     >
       {/* Card 1: Discrete Objects */}
@@ -605,7 +889,7 @@ const DualBranchCards: React.FC<{ frame: number }> = ({ frame }) => {
           background: palette.paperLight,
           border: `3px solid ${palette.clay}`,
           borderRadius: 20,
-          padding: 36,
+          padding: 32,
           display: 'flex',
           flexDirection: 'column',
           boxShadow: `0 20px 50px ${palette.clay}22`,
@@ -613,21 +897,21 @@ const DualBranchCards: React.FC<{ frame: number }> = ({ frame }) => {
       >
         <div
           style={{
-            fontFamily: SERIF,
             fontSize: 22,
             fontWeight: 700,
             color: palette.clay,
+            whiteSpace: 'nowrap',
           }}
         >
           第一类地理实体
         </div>
         <div
           style={{
-            fontFamily: SERIF,
-            fontSize: 46,
+            fontSize: 44,
             fontWeight: 700,
             color: palette.ink,
-            marginTop: 8,
+            marginTop: 6,
+            whiteSpace: 'nowrap',
           }}
         >
           离散对象
@@ -635,43 +919,110 @@ const DualBranchCards: React.FC<{ frame: number }> = ({ frame }) => {
 
         <div
           style={{
-            marginTop: 24,
-            height: 220,
+            marginTop: 18,
+            height: 230,
             background: palette.paper,
             border: `2px dashed ${palette.clay}44`,
-            borderRadius: 12,
+            borderRadius: 14,
             display: 'grid',
             placeItems: 'center',
+            position: 'relative',
+            overflow: 'hidden',
           }}
         >
-          <svg width="240" height="160" viewBox="0 0 240 160">
-            <rect
-              x="20"
-              y="40"
-              width="60"
-              height="90"
-              fill={palette.clay + '25'}
-              stroke={palette.clay}
-              strokeWidth="3"
-            />
-            <circle
-              cx="120"
-              cy="80"
-              r="28"
-              fill={palette.sage + '25'}
-              stroke={palette.sage}
-              strokeWidth="3"
-            />
-            <rect
-              x="160"
-              y="90"
-              width="60"
-              height="40"
-              rx="6"
-              fill={palette.blue + '25'}
-              stroke={palette.blue}
-              strokeWidth="3"
-            />
+          <svg width="420" height="200" viewBox="0 0 420 200">
+            {/* Building Icon */}
+            <g transform="translate(30, 25)">
+              <polygon points="0,20 35,0 70,20" fill={palette.clay} />
+              <rect
+                x="6"
+                y="20"
+                width="58"
+                height="75"
+                fill={palette.paperLight}
+                stroke={palette.clay}
+                strokeWidth="3"
+                rx="2"
+              />
+              <rect x="14" y="30" width="16" height="16" fill={palette.clay + '40'} />
+              <rect x="40" y="30" width="16" height="16" fill={palette.clay + '40'} />
+              <rect x="14" y="56" width="16" height="16" fill={palette.clay + '40'} />
+              <rect x="40" y="56" width="16" height="16" fill={palette.clay + '40'} />
+              <rect
+                x="-8"
+                y="-8"
+                width="86"
+                height="112"
+                fill="none"
+                stroke={palette.clay}
+                strokeWidth="2"
+                strokeDasharray="5 4"
+              />
+              <text x="14" y="125" fontFamily={SERIF} fontSize="14" fontWeight="700" fill={palette.clay}>
+                建筑 #1
+              </text>
+            </g>
+
+            {/* Tree Icon (Clean Single Canopy) */}
+            <g transform="translate(165, 30)">
+              <line
+                x1="30"
+                y1="60"
+                x2="30"
+                y2="95"
+                stroke={palette.amber}
+                strokeWidth="7"
+                strokeLinecap="round"
+              />
+              <circle cx="30" cy="45" r="35" fill={palette.sage + '40'} stroke={palette.sage} strokeWidth="3" />
+              <circle
+                cx="30"
+                cy="45"
+                r="44"
+                fill="none"
+                stroke={palette.sage}
+                strokeWidth="2"
+                strokeDasharray="5 4"
+              />
+              <text x="12" y="120" fontFamily={SERIF} fontSize="14" fontWeight="700" fill={palette.sage}>
+                树木 #1
+              </text>
+            </g>
+
+            {/* Car Icon */}
+            <g transform="translate(275, 55)">
+              <path
+                d="M 6 36 Q 14 10 35 10 L 68 10 Q 85 10 96 36 Z"
+                fill={palette.blue + '35'}
+                stroke={palette.blue}
+                strokeWidth="3"
+              />
+              <rect
+                x="0"
+                y="30"
+                width="104"
+                height="28"
+                rx="6"
+                fill={palette.blue + '35'}
+                stroke={palette.blue}
+                strokeWidth="3"
+              />
+              <circle cx="24" cy="58" r="11" fill={palette.ink} />
+              <circle cx="80" cy="58" r="11" fill={palette.ink} />
+              <rect
+                x="-6"
+                y="2"
+                width="116"
+                height="68"
+                fill="none"
+                stroke={palette.blue}
+                strokeWidth="2"
+                strokeDasharray="5 4"
+              />
+              <text x="32" y="95" fontFamily={SERIF} fontSize="14" fontWeight="700" fill={palette.blue}>
+                汽车 #1
+              </text>
+            </g>
           </svg>
         </div>
 
@@ -687,10 +1038,10 @@ const DualBranchCards: React.FC<{ frame: number }> = ({ frame }) => {
               padding: '8px 20px',
               background: palette.clay + '18',
               color: palette.clay,
-              fontFamily: SERIF,
               fontSize: 22,
               fontWeight: 700,
               borderRadius: 8,
+              whiteSpace: 'nowrap',
             }}
           >
             边界清晰
@@ -700,10 +1051,10 @@ const DualBranchCards: React.FC<{ frame: number }> = ({ frame }) => {
               padding: '8px 20px',
               background: palette.sage + '18',
               color: palette.sage,
-              fontFamily: SERIF,
               fontSize: 22,
               fontWeight: 700,
               borderRadius: 8,
+              whiteSpace: 'nowrap',
             }}
           >
             独立可数
@@ -719,7 +1070,7 @@ const DualBranchCards: React.FC<{ frame: number }> = ({ frame }) => {
           background: palette.paperLight,
           border: `3px solid ${palette.blue}`,
           borderRadius: 20,
-          padding: 36,
+          padding: 32,
           display: 'flex',
           flexDirection: 'column',
           boxShadow: `0 20px 50px ${palette.blue}22`,
@@ -727,21 +1078,21 @@ const DualBranchCards: React.FC<{ frame: number }> = ({ frame }) => {
       >
         <div
           style={{
-            fontFamily: SERIF,
             fontSize: 22,
             fontWeight: 700,
             color: palette.blue,
+            whiteSpace: 'nowrap',
           }}
         >
           第二类地理实体
         </div>
         <div
           style={{
-            fontFamily: SERIF,
-            fontSize: 46,
+            fontSize: 44,
             fontWeight: 700,
             color: palette.ink,
-            marginTop: 8,
+            marginTop: 6,
+            whiteSpace: 'nowrap',
           }}
         >
           连续场
@@ -749,42 +1100,56 @@ const DualBranchCards: React.FC<{ frame: number }> = ({ frame }) => {
 
         <div
           style={{
-            marginTop: 24,
-            height: 220,
-            background: `radial-gradient(circle at 50% 50%, ${palette.blue}20, ${palette.sage}15, transparent)`,
+            marginTop: 18,
+            height: 230,
+            background: `radial-gradient(circle at 40% 40%, ${palette.amber}22, ${palette.blue}20, ${palette.sage}15, transparent)`,
             border: `2px dashed ${palette.blue}44`,
-            borderRadius: 12,
+            borderRadius: 14,
             display: 'grid',
             placeItems: 'center',
             position: 'relative',
             overflow: 'hidden',
           }}
         >
-          <svg width="260" height="180" viewBox="0 0 260 180">
+          <svg width="420" height="200" viewBox="0 0 420 200">
+            {/* Continuous Contour Lines */}
             <path
-              d="M10 140 C70 80 130 160 190 100 S230 60 250 120"
+              d="M10 160 C90 100 180 170 270 110 S360 70 410 140"
               fill="none"
               stroke={palette.blue}
-              strokeWidth="3"
+              strokeWidth="3.5"
             />
             <path
-              d="M10 100 C60 50 120 120 180 60 S220 30 250 80"
+              d="M10 120 C100 60 190 130 280 80 S370 40 410 100"
               fill="none"
               stroke={palette.amber}
-              strokeWidth="2"
-              strokeDasharray="5 5"
+              strokeWidth="2.5"
+              strokeDasharray="6 4"
             />
-            <circle cx="80" cy="100" r="4" fill={palette.ink} />
-            <text
-              x="92"
-              y="104"
-              fontFamily={SERIF}
-              fontSize="18"
-              fontWeight="700"
-              fill={palette.inkSoft}
-            >
-              24.5°C
-            </text>
+            <path
+              d="M10 80 C110 30 200 90 290 50 S380 20 410 60"
+              fill="none"
+              stroke={palette.sage}
+              strokeWidth="2"
+              strokeDasharray="4 4"
+            />
+
+            {/* Live Point Probe Annotations */}
+            <g transform="translate(120, 105)">
+              <circle cx="0" cy="0" r="5" fill={palette.amber} stroke={palette.ink} strokeWidth="1.5" />
+              <rect x="8" y="-14" width="76" height="24" rx="4" fill={palette.ink} />
+              <text x="14" y="3" fontFamily={SERIF} fontSize="15" fontWeight="700" fill={palette.paperLight}>
+                24.5 °C
+              </text>
+            </g>
+
+            <g transform="translate(280, 90)">
+              <circle cx="0" cy="0" r="5" fill={palette.blue} stroke={palette.ink} strokeWidth="1.5" />
+              <rect x="8" y="-14" width="76" height="24" rx="4" fill={palette.ink} />
+              <text x="14" y="3" fontFamily={SERIF} fontSize="15" fontWeight="700" fill={palette.paperLight}>
+                1240 m
+              </text>
+            </g>
           </svg>
         </div>
 
@@ -800,10 +1165,10 @@ const DualBranchCards: React.FC<{ frame: number }> = ({ frame }) => {
               padding: '8px 20px',
               background: palette.blue + '18',
               color: palette.blue,
-              fontFamily: SERIF,
               fontSize: 22,
               fontWeight: 700,
               borderRadius: 8,
+              whiteSpace: 'nowrap',
             }}
           >
             无明确边缘
@@ -813,10 +1178,10 @@ const DualBranchCards: React.FC<{ frame: number }> = ({ frame }) => {
               padding: '8px 20px',
               background: palette.amber + '18',
               color: palette.amber,
-              fontFamily: SERIF,
               fontSize: 22,
               fontWeight: 700,
               borderRadius: 8,
+              whiteSpace: 'nowrap',
             }}
           >
             处处有数值
@@ -827,7 +1192,9 @@ const DualBranchCards: React.FC<{ frame: number }> = ({ frame }) => {
   );
 };
 
-// Stage 3: Centered Discrete Street Scene (Frames 646 - 2266)
+// ==========================================
+// Stage 3: High-Craft Discrete Street Scene (Frames 1100 - 2266)
+// ==========================================
 const DiscreteStreetStage: React.FC<{ frame: number }> = ({ frame }) => {
   const { fps } = useVideoConfig();
   const T = getTimestamps(fps);
@@ -842,7 +1209,7 @@ const DiscreteStreetStage: React.FC<{ frame: number }> = ({ frame }) => {
 
   const isCountingBeat = frame >= T.discrete_count;
 
-  // Pop counts
+  // Crisp spring animations for count badges
   const bldgPop = spring({
     frame: frame - T.discrete_count,
     fps,
@@ -893,6 +1260,7 @@ const DiscreteStreetStage: React.FC<{ frame: number }> = ({ frame }) => {
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
+        fontFamily: SERIF,
       }}
     >
       {/* Top Banner */}
@@ -917,13 +1285,13 @@ const DiscreteStreetStage: React.FC<{ frame: number }> = ({ frame }) => {
           />
           <span
             style={{
-              fontFamily: SERIF,
               fontSize: 26,
               fontWeight: 700,
               color: palette.ink,
+              whiteSpace: 'nowrap',
             }}
           >
-            大街视角 · 离散对象
+            大街视角 · 离散实体物理界限
           </span>
         </div>
 
@@ -932,9 +1300,9 @@ const DiscreteStreetStage: React.FC<{ frame: number }> = ({ frame }) => {
             style={{
               display: 'flex',
               gap: 24,
-              fontFamily: SERIF,
               fontSize: 24,
               fontWeight: 700,
+              whiteSpace: 'nowrap',
             }}
           >
             <span style={{ color: palette.clay }}>1 栋楼</span>
@@ -944,7 +1312,7 @@ const DiscreteStreetStage: React.FC<{ frame: number }> = ({ frame }) => {
         )}
       </div>
 
-      {/* SVG Canvas (1360 × 480) */}
+      {/* Architectural & Street Vector Canvas (1360 × 480) */}
       <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
         <svg
           width="1360"
@@ -952,86 +1320,161 @@ const DiscreteStreetStage: React.FC<{ frame: number }> = ({ frame }) => {
           viewBox="0 0 1360 480"
           style={{ position: 'absolute', inset: 0 }}
         >
-          {/* Horizon & Road */}
+          <defs>
+            <linearGradient id="bldgGlass" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor={palette.paperLight} />
+              <stop offset="100%" stopColor={palette.blue + '25'} />
+            </linearGradient>
+            <linearGradient id="carGlass" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={palette.paperLight} />
+              <stop offset="100%" stopColor={palette.blueLight + '44'} />
+            </linearGradient>
+          </defs>
+
+          {/* Sidewalk Background */}
+          <rect x="0" y="240" width="1360" height="70" fill={palette.line + '30'} />
+          <line x1="0" y1="240" x2="1360" y2="240" stroke={palette.line} strokeWidth="2" />
+          <line x1="0" y1="310" x2="1360" y2="310" stroke={palette.inkSoft} strokeWidth="2.5" />
+
+          {/* Sidewalk Stone Tiles */}
+          {Array.from({ length: 24 }).map((_, i) => (
+            <line
+              key={`tile-${i}`}
+              x1={i * 60}
+              y1="240"
+              x2={i * 60}
+              y2="310"
+              stroke={palette.line}
+              strokeWidth="1.5"
+              strokeDasharray="2 4"
+            />
+          ))}
+
+          {/* Road Surface */}
+          <rect x="0" y="310" width="1360" height="170" fill={palette.ink + '0a'} />
+
+          {/* Road Lane Center Divider */}
           <line
             x1="0"
-            y1="280"
+            y1="395"
             x2="1360"
-            y2="280"
-            stroke={palette.line}
-            strokeWidth="3"
-          />
-          <rect
-            x="0"
-            y="280"
-            width="1360"
-            height="200"
-            fill={palette.ink + '08'}
-          />
-          <line
-            x1="0"
-            y1="380"
-            x2="1360"
-            y2="380"
+            y2="395"
             stroke={palette.amber}
             strokeWidth="4"
-            strokeDasharray="24 18"
+            strokeDasharray="28 20"
           />
 
-          {/* --- BUILDING --- */}
-          <g transform="translate(140, 40)">
+          {/* Decorative Vintage Street Lamp */}
+          <g transform="translate(420, 135)">
+            <path
+              d="M 10 175 L 10 20 Q 10 0 25 0 Q 40 0 40 20 L 40 30"
+              fill="none"
+              stroke={palette.inkSoft}
+              strokeWidth="4"
+              strokeLinecap="round"
+            />
+            <polygon points="32,30 48,30 44,45 36,45" fill={palette.amber} />
+            <circle cx="40" cy="48" r="14" fill={palette.amber + '35'} />
+          </g>
+
+          {/* =======================================================
+              1. ARCHITECTURAL BUILDING (建筑 #1)
+             ======================================================= */}
+          <g transform="translate(90, 52)">
+            {/* Top Label (Always clearly visible above building) */}
             <text
-              x="30"
-              y="-12"
+              x="80"
+              y="-20"
               fontFamily={SERIF}
               fontSize="20"
               fontWeight="700"
               fill={palette.clay}
             >
-              建筑 #1
+              建筑实体 #1
             </text>
+
+            {/* Bounding Box Outline (Vector geometry concept) */}
+            <rect
+              x="-12"
+              y="-12"
+              width="274"
+              height="270"
+              fill="none"
+              stroke={palette.clay}
+              strokeWidth="2.5"
+              strokeDasharray="8 6"
+              rx="8"
+            />
+
+            {/* Building Main Body */}
             <rect
               x="0"
               y="0"
-              width="220"
-              height="240"
+              width="250"
+              height="246"
               fill={palette.clay + '20'}
               stroke={palette.clay}
               strokeWidth="4"
-              rx="6"
+              rx="4"
             />
-            {/* Windows */}
-            {[0, 1, 2, 3].map((r) =>
-              [0, 1, 2, 3].map((c) => (
-                <rect
-                  key={`${r}-${c}`}
-                  x={20 + c * 48}
-                  y={20 + r * 52}
-                  width="36"
-                  height="36"
-                  fill={palette.paperLight}
-                  stroke={palette.clay}
-                  strokeWidth="2"
-                />
+
+            {/* Top Roof Parapet / Cornice */}
+            <rect
+              x="-6"
+              y="-6"
+              width="262"
+              height="16"
+              fill={palette.clay}
+              rx="3"
+            />
+
+            {/* Architectural Windows (3 rows × 3 columns) */}
+            {[0, 1, 2].map((r) =>
+              [0, 1, 2].map((c) => (
+                <g key={`win-${r}-${c}`} transform={`translate(${24 + c * 74}, ${22 + r * 54})`}>
+                  <rect
+                    x="0"
+                    y="0"
+                    width="54"
+                    height="42"
+                    fill="url(#bldgGlass)"
+                    stroke={palette.clay}
+                    strokeWidth="2.5"
+                    rx="3"
+                  />
+                  {/* Muntin Cross */}
+                  <line x1="27" y1="0" x2="27" y2="42" stroke={palette.clay} strokeWidth="1.5" />
+                  <line x1="0" y1="21" x2="54" y2="21" stroke={palette.clay} strokeWidth="1.5" />
+                </g>
               ))
             )}
-            <rect
-              x="-10"
-              y="-10"
-              width="240"
-              height="260"
-              fill="none"
-              stroke={palette.clay}
-              strokeWidth="3"
-              strokeDasharray="8 6"
-            />
+
+            {/* Ground Floor Entrance & Awning */}
+            <g transform="translate(85, 194)">
+              <polygon points="-12,0 92,0 80,14 0,14" fill={palette.amber} />
+              <rect
+                x="10"
+                y="14"
+                width="60"
+                height="38"
+                fill={palette.paperLight}
+                stroke={palette.clay}
+                strokeWidth="3"
+              />
+              <line x1="40" y1="14" x2="40" y2="52" stroke={palette.clay} strokeWidth="2" />
+              <circle cx="36" cy="33" r="2" fill={palette.clay} />
+              <circle cx="44" cy="33" r="2" fill={palette.clay} />
+            </g>
           </g>
 
-          {/* --- TREE 1 --- */}
-          <g transform="translate(520, 100)">
+          {/* =======================================================
+              2. ORGANIC TREE 1 (树木 #1 - Single Clean Canopy)
+             ======================================================= */}
+          <g transform="translate(530, 80)">
+            {/* Top Label */}
             <text
-              x="-10"
-              y="-15"
+              x="18"
+              y="-12"
               fontFamily={SERIF}
               fontSize="20"
               fontWeight="700"
@@ -1039,39 +1482,37 @@ const DiscreteStreetStage: React.FC<{ frame: number }> = ({ frame }) => {
             >
               树木 #1
             </text>
-            <line
-              x1="45"
-              y1="80"
-              x2="45"
-              y2="180"
-              stroke={palette.amber}
-              strokeWidth="10"
-              strokeLinecap="round"
-            />
+
+            {/* Dashed Bounding Ring */}
             <circle
-              cx="45"
-              cy="70"
-              r="55"
-              fill={palette.sage + '35'}
-              stroke={palette.sage}
-              strokeWidth="4"
-            />
-            <circle
-              cx="45"
-              cy="85"
-              r="72"
+              cx="55"
+              cy="95"
+              r="76"
               fill="none"
               stroke={palette.sage}
-              strokeWidth="3"
-              strokeDasharray="6 6"
+              strokeWidth="2.5"
+              strokeDasharray="7 5"
             />
+
+            {/* Tree Trunk & Roots */}
+            <path
+              d="M 47 95 L 47 220 Q 40 230 32 230 L 78 230 Q 70 230 63 220 L 63 95 Z"
+              fill={palette.amber}
+            />
+
+            {/* Clean Single Lush Canopy with Soft Gradient */}
+            <circle cx="55" cy="85" r="56" fill={palette.sage + '44'} stroke={palette.sage} strokeWidth="3.5" />
+            <circle cx="55" cy="80" r="42" fill={palette.sage + '35'} />
           </g>
 
-          {/* --- TREE 2 --- */}
-          <g transform="translate(740, 110)">
+          {/* =======================================================
+              3. ORGANIC TREE 2 (树木 #2 - Single Clean Canopy)
+             ======================================================= */}
+          <g transform="translate(760, 95)">
+            {/* Top Label */}
             <text
-              x="-10"
-              y="-15"
+              x="14"
+              y="-12"
               fontFamily={SERIF}
               fontSize="20"
               fontWeight="700"
@@ -1079,39 +1520,37 @@ const DiscreteStreetStage: React.FC<{ frame: number }> = ({ frame }) => {
             >
               树木 #2
             </text>
-            <line
-              x1="40"
-              y1="70"
-              x2="40"
-              y2="170"
-              stroke={palette.amber}
-              strokeWidth="9"
-              strokeLinecap="round"
-            />
+
+            {/* Dashed Bounding Ring */}
             <circle
-              cx="40"
-              cy="60"
-              r="48"
-              fill={palette.sage + '35'}
-              stroke={palette.sage}
-              strokeWidth="4"
-            />
-            <circle
-              cx="40"
-              cy="75"
-              r="64"
+              cx="48"
+              cy="85"
+              r="66"
               fill="none"
               stroke={palette.sage}
-              strokeWidth="3"
-              strokeDasharray="6 6"
+              strokeWidth="2.5"
+              strokeDasharray="7 5"
             />
+
+            {/* Trunk */}
+            <path
+              d="M 42 85 L 42 215 Q 36 222 30 222 L 66 222 Q 60 222 54 215 L 54 85 Z"
+              fill={palette.amber}
+            />
+
+            {/* Clean Single Lush Canopy */}
+            <circle cx="48" cy="78" r="48" fill={palette.sage + '44'} stroke={palette.sage} strokeWidth="3.5" />
+            <circle cx="48" cy="74" r="36" fill={palette.sage + '35'} />
           </g>
 
-          {/* --- CARS --- */}
-          {/* Car 1 */}
-          <g transform={`translate(${120 + carOffset}, 310)`}>
+          {/* =======================================================
+              4. SLEEK VECTOR CARS (汽车 #1, #2, #3 - With Explicit Labels)
+             ======================================================= */}
+          {/* Car 1 (Lane 1: Top lane) */}
+          <g transform={`translate(${110 + carOffset}, 325)`}>
+            {/* Car Label */}
             <text
-              x="20"
+              x="52"
               y="-14"
               fontFamily={SERIF}
               fontSize="18"
@@ -1120,34 +1559,62 @@ const DiscreteStreetStage: React.FC<{ frame: number }> = ({ frame }) => {
             >
               汽车 #1
             </text>
+
+            {/* Dashed Bounding Box */}
             <rect
-              x="0"
-              y="0"
-              width="150"
-              height="58"
-              rx="12"
-              fill={palette.blue + '30'}
-              stroke={palette.blue}
-              strokeWidth="4"
-            />
-            <circle cx="38" cy="58" r="16" fill={palette.ink} />
-            <circle cx="112" cy="58" r="16" fill={palette.ink} />
-            <rect
-              x="-6"
+              x="-8"
               y="-6"
-              width="162"
+              width="176"
               height="78"
               fill="none"
               stroke={palette.blue}
               strokeWidth="2"
-              strokeDasharray="5 5"
+              strokeDasharray="6 4"
+              rx="6"
             />
+
+            {/* Car Upper Cabin */}
+            <path
+              d="M 25 25 Q 40 4 75 4 L 115 4 Q 135 4 145 25 Z"
+              fill="url(#carGlass)"
+              stroke={palette.blue}
+              strokeWidth="3.5"
+            />
+            {/* Window Pillar */}
+            <line x1="88" y1="4" x2="88" y2="25" stroke={palette.blue} strokeWidth="2.5" />
+
+            {/* Lower Body */}
+            <rect
+              x="0"
+              y="22"
+              width="160"
+              height="35"
+              rx="10"
+              fill={palette.blue + '35'}
+              stroke={palette.blue}
+              strokeWidth="3.5"
+            />
+
+            {/* Headlights & Taillights */}
+            <rect x="154" y="26" width="6" height="12" rx="2" fill={palette.amber} />
+            <rect x="0" y="26" width="5" height="12" rx="2" fill={palette.clay} />
+
+            {/* Wheels */}
+            <g transform="translate(38, 56)">
+              <circle cx="0" cy="0" r="16" fill={palette.ink} />
+              <circle cx="0" cy="0" r="7" fill={palette.paperLight} stroke={palette.inkSoft} strokeWidth="2" />
+            </g>
+            <g transform="translate(122, 56)">
+              <circle cx="0" cy="0" r="16" fill={palette.ink} />
+              <circle cx="0" cy="0" r="7" fill={palette.paperLight} stroke={palette.inkSoft} strokeWidth="2" />
+            </g>
           </g>
 
-          {/* Car 2 */}
-          <g transform={`translate(${460 + carOffset}, 390)`}>
+          {/* Car 2 (Lane 2: Bottom lane) */}
+          <g transform={`translate(${460 + carOffset}, 405)`}>
+            {/* Car Label */}
             <text
-              x="20"
+              x="58"
               y="-14"
               fontFamily={SERIF}
               fontSize="18"
@@ -1156,34 +1623,60 @@ const DiscreteStreetStage: React.FC<{ frame: number }> = ({ frame }) => {
             >
               汽车 #2
             </text>
+
+            {/* Dashed Bounding Box */}
             <rect
-              x="0"
-              y="0"
-              width="160"
-              height="60"
-              rx="12"
-              fill={palette.blue + '30'}
-              stroke={palette.blue}
-              strokeWidth="4"
-            />
-            <circle cx="42" cy="60" r="18" fill={palette.ink} />
-            <circle cx="118" cy="60" r="18" fill={palette.ink} />
-            <rect
-              x="-6"
+              x="-8"
               y="-6"
-              width="172"
-              height="82"
+              width="186"
+              height="80"
               fill="none"
               stroke={palette.blue}
               strokeWidth="2"
-              strokeDasharray="5 5"
+              strokeDasharray="6 4"
+              rx="6"
             />
+
+            {/* Car Upper Cabin */}
+            <path
+              d="M 28 26 Q 45 4 80 4 L 125 4 Q 145 4 155 26 Z"
+              fill="url(#carGlass)"
+              stroke={palette.blue}
+              strokeWidth="3.5"
+            />
+            <line x1="95" y1="4" x2="95" y2="26" stroke={palette.blue} strokeWidth="2.5" />
+
+            {/* Lower Body */}
+            <rect
+              x="0"
+              y="22"
+              width="170"
+              height="36"
+              rx="10"
+              fill={palette.blue + '35'}
+              stroke={palette.blue}
+              strokeWidth="3.5"
+            />
+
+            <rect x="164" y="26" width="6" height="12" rx="2" fill={palette.amber} />
+            <rect x="0" y="26" width="5" height="12" rx="2" fill={palette.clay} />
+
+            {/* Wheels */}
+            <g transform="translate(42, 58)">
+              <circle cx="0" cy="0" r="17" fill={palette.ink} />
+              <circle cx="0" cy="0" r="7" fill={palette.paperLight} stroke={palette.inkSoft} strokeWidth="2" />
+            </g>
+            <g transform="translate(128, 58)">
+              <circle cx="0" cy="0" r="17" fill={palette.ink} />
+              <circle cx="0" cy="0" r="7" fill={palette.paperLight} stroke={palette.inkSoft} strokeWidth="2" />
+            </g>
           </g>
 
-          {/* Car 3 */}
-          <g transform={`translate(${820 + carOffset}, 320)`}>
+          {/* Car 3 (Lane 1: Top lane right) */}
+          <g transform={`translate(${840 + carOffset}, 325)`}>
+            {/* Car Label */}
             <text
-              x="20"
+              x="48"
               y="-14"
               fontFamily={SERIF}
               fontSize="18"
@@ -1192,66 +1685,94 @@ const DiscreteStreetStage: React.FC<{ frame: number }> = ({ frame }) => {
             >
               汽车 #3
             </text>
+
+            {/* Dashed Bounding Box */}
             <rect
-              x="0"
-              y="0"
-              width="140"
-              height="54"
-              rx="10"
-              fill={palette.blue + '30'}
-              stroke={palette.blue}
-              strokeWidth="4"
-            />
-            <circle cx="35" cy="54" r="14" fill={palette.ink} />
-            <circle cx="105" cy="54" r="14" fill={palette.ink} />
-            <rect
-              x="-6"
+              x="-8"
               y="-6"
-              width="152"
-              height="74"
+              width="166"
+              height="78"
               fill="none"
               stroke={palette.blue}
               strokeWidth="2"
-              strokeDasharray="5 5"
+              strokeDasharray="6 4"
+              rx="6"
             />
+
+            {/* Car Upper Cabin */}
+            <path
+              d="M 22 24 Q 35 4 70 4 L 105 4 Q 125 4 135 24 Z"
+              fill="url(#carGlass)"
+              stroke={palette.blue}
+              strokeWidth="3.5"
+            />
+            <line x1="80" y1="4" x2="80" y2="24" stroke={palette.blue} strokeWidth="2.5" />
+
+            {/* Lower Body */}
+            <rect
+              x="0"
+              y="20"
+              width="150"
+              height="35"
+              rx="10"
+              fill={palette.blue + '35'}
+              stroke={palette.blue}
+              strokeWidth="3.5"
+            />
+
+            <rect x="144" y="24" width="6" height="12" rx="2" fill={palette.amber} />
+            <rect x="0" y="24" width="5" height="12" rx="2" fill={palette.clay} />
+
+            {/* Wheels */}
+            <g transform="translate(36, 55)">
+              <circle cx="0" cy="0" r="16" fill={palette.ink} />
+              <circle cx="0" cy="0" r="7" fill={palette.paperLight} stroke={palette.inkSoft} strokeWidth="2" />
+            </g>
+            <g transform="translate(114, 55)">
+              <circle cx="0" cy="0" r="16" fill={palette.ink} />
+              <circle cx="0" cy="0" r="7" fill={palette.paperLight} stroke={palette.inkSoft} strokeWidth="2" />
+            </g>
           </g>
         </svg>
 
-        {/* Floating Count Badges */}
+        {/* Floating Physical Count Badges (Spring Animated on Beat) */}
         {isCountingBeat && (
           <>
             <div
               style={{
                 position: 'absolute',
-                left: 230,
-                top: 15,
+                left: 155,
+                top: 8,
                 transform: `scale(${bldgPop})`,
-                padding: '8px 22px',
+                padding: '8px 24px',
                 background: palette.clay,
                 color: palette.paperLight,
-                fontFamily: SERIF,
                 fontSize: 24,
                 fontWeight: 700,
                 borderRadius: 20,
                 boxShadow: `0 10px 24px ${palette.clay}44`,
+                whiteSpace: 'nowrap',
+                zIndex: 20,
               }}
             >
-              1 栋楼
+              1 栋建筑
             </div>
 
             <div
               style={{
                 position: 'absolute',
                 left: 550,
-                top: 60,
+                top: 30,
                 transform: `scale(${tree1Pop})`,
-                padding: '6px 18px',
+                padding: '6px 20px',
                 background: palette.sage,
                 color: palette.paperLight,
-                fontFamily: SERIF,
-                fontSize: 20,
+                fontSize: 22,
                 fontWeight: 700,
-                borderRadius: 16,
+                borderRadius: 18,
+                boxShadow: `0 8px 20px ${palette.sage}40`,
+                whiteSpace: 'nowrap',
+                zIndex: 20,
               }}
             >
               第 1 棵树
@@ -1260,16 +1781,18 @@ const DiscreteStreetStage: React.FC<{ frame: number }> = ({ frame }) => {
             <div
               style={{
                 position: 'absolute',
-                left: 770,
-                top: 70,
+                left: 775,
+                top: 45,
                 transform: `scale(${tree2Pop})`,
-                padding: '6px 18px',
+                padding: '6px 20px',
                 background: palette.sage,
                 color: palette.paperLight,
-                fontFamily: SERIF,
-                fontSize: 20,
+                fontSize: 22,
                 fontWeight: 700,
-                borderRadius: 16,
+                borderRadius: 18,
+                boxShadow: `0 8px 20px ${palette.sage}40`,
+                whiteSpace: 'nowrap',
+                zIndex: 20,
               }}
             >
               第 2 棵树
@@ -1278,16 +1801,18 @@ const DiscreteStreetStage: React.FC<{ frame: number }> = ({ frame }) => {
             <div
               style={{
                 position: 'absolute',
-                left: 170,
+                left: 150,
                 bottom: 120,
                 transform: `scale(${car1Pop})`,
-                padding: '6px 18px',
+                padding: '6px 20px',
                 background: palette.blue,
                 color: palette.paperLight,
-                fontFamily: SERIF,
-                fontSize: 20,
+                fontSize: 22,
                 fontWeight: 700,
-                borderRadius: 16,
+                borderRadius: 18,
+                boxShadow: `0 8px 20px ${palette.blue}40`,
+                whiteSpace: 'nowrap',
+                zIndex: 20,
               }}
             >
               第 1 辆车
@@ -1296,16 +1821,18 @@ const DiscreteStreetStage: React.FC<{ frame: number }> = ({ frame }) => {
             <div
               style={{
                 position: 'absolute',
-                left: 510,
+                left: 500,
                 bottom: 30,
                 transform: `scale(${car2Pop})`,
-                padding: '6px 18px',
+                padding: '6px 20px',
                 background: palette.blue,
                 color: palette.paperLight,
-                fontFamily: SERIF,
-                fontSize: 20,
+                fontSize: 22,
                 fontWeight: 700,
-                borderRadius: 16,
+                borderRadius: 18,
+                boxShadow: `0 8px 20px ${palette.blue}40`,
+                whiteSpace: 'nowrap',
+                zIndex: 20,
               }}
             >
               第 2 辆车
@@ -1314,16 +1841,18 @@ const DiscreteStreetStage: React.FC<{ frame: number }> = ({ frame }) => {
             <div
               style={{
                 position: 'absolute',
-                left: 870,
-                bottom: 110,
+                left: 880,
+                bottom: 120,
                 transform: `scale(${car3Pop})`,
-                padding: '6px 18px',
+                padding: '6px 20px',
                 background: palette.blue,
                 color: palette.paperLight,
-                fontFamily: SERIF,
-                fontSize: 20,
+                fontSize: 22,
                 fontWeight: 700,
-                borderRadius: 16,
+                borderRadius: 18,
+                boxShadow: `0 8px 20px ${palette.blue}40`,
+                whiteSpace: 'nowrap',
+                zIndex: 20,
               }}
             >
               第 3 辆车
@@ -1340,20 +1869,21 @@ const DiscreteStreetStage: React.FC<{ frame: number }> = ({ frame }) => {
           borderTop: `2px solid ${palette.clay}22`,
           display: 'flex',
           justifyContent: 'space-between',
-          fontFamily: SERIF,
           fontSize: 22,
           fontWeight: 700,
           color: palette.inkSoft,
         }}
       >
-        <span>核心特征：几何物理界限清晰</span>
-        <span>个体独立：能够被独立逐一计数</span>
+        <span>核心特征：几何与物理边界清晰分明</span>
+        <span style={{ color: palette.clay }}>个体独立：能够被逐一离散计数</span>
       </div>
     </div>
   );
 };
 
+// ==========================================
 // Stage 4: Centered Continuous Field Stage & Probe (Frames 2266 - 3996)
+// ==========================================
 const ContinuousFieldStage: React.FC<{ frame: number }> = ({ frame }) => {
   const { fps } = useVideoConfig();
   const T = getTimestamps(fps);
@@ -1383,19 +1913,19 @@ const ContinuousFieldStage: React.FC<{ frame: number }> = ({ frame }) => {
   );
 
   let currentValText = '1420 米 (海拔)';
-  let currentLocText = '山顶主峰';
+  let currentLocText = '山顶主峰高程点';
   let isZeroValue = false;
 
   if (probeRelFrame > fps * 4.5) {
     currentValText = '0.00 微克/立方米 (PM 2.5)';
-    currentLocText = '极净采样点';
+    currentLocText = '极净空气采样点 (依然有确切数值)';
     isZeroValue = true;
   } else if (probeRelFrame > fps * 2.8) {
     currentValText = '68.5 分贝 (城市噪声)';
-    currentLocText = '主干道旁';
+    currentLocText = '主干道旁声压级';
   } else if (probeRelFrame > fps * 1.2) {
     currentValText = '18.4 °C (环境温度)';
-    currentLocText = '山腰植被区';
+    currentLocText = '山腰植被区气温';
   }
 
   return (
@@ -1415,6 +1945,7 @@ const ContinuousFieldStage: React.FC<{ frame: number }> = ({ frame }) => {
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
+        fontFamily: SERIF,
       }}
     >
       {/* Header Bar */}
@@ -1439,13 +1970,13 @@ const ContinuousFieldStage: React.FC<{ frame: number }> = ({ frame }) => {
           />
           <span
             style={{
-              fontFamily: SERIF,
               fontSize: 26,
               fontWeight: 700,
               color: palette.ink,
+              whiteSpace: 'nowrap',
             }}
           >
-            场景观察 · 连续场
+            场景观察 · 连续场现象
           </span>
         </div>
 
@@ -1457,10 +1988,10 @@ const ContinuousFieldStage: React.FC<{ frame: number }> = ({ frame }) => {
                 padding: '6px 18px',
                 background: palette.blue + '18',
                 color: palette.blue,
-                fontFamily: SERIF,
                 fontSize: 20,
                 fontWeight: 700,
                 borderRadius: 20,
+                whiteSpace: 'nowrap',
               }}
             >
               {tag}
@@ -1609,7 +2140,7 @@ const ContinuousFieldStage: React.FC<{ frame: number }> = ({ frame }) => {
           <div
             style={{
               position: 'absolute',
-              left: Math.min(900, probeX + 35),
+              left: Math.min(880, probeX + 35),
               top: Math.max(30, probeY - 50),
               background: palette.ink,
               color: palette.paperLight,
@@ -1624,30 +2155,30 @@ const ContinuousFieldStage: React.FC<{ frame: number }> = ({ frame }) => {
           >
             <div
               style={{
-                fontFamily: SERIF,
                 fontSize: 18,
                 color: palette.sageLight,
                 marginBottom: 4,
+                whiteSpace: 'nowrap',
               }}
             >
-              采样点位置: ({Math.round(probeX)}, {Math.round(probeY)})
+              探针采样坐标: ({Math.round(probeX)}, {Math.round(probeY)})
             </div>
             <div
               style={{
-                fontFamily: SERIF,
                 fontSize: 28,
                 fontWeight: 700,
                 color: isZeroValue ? palette.amber : palette.paperLight,
+                whiteSpace: 'nowrap',
               }}
             >
               {currentValText}
             </div>
             <div
               style={{
-                fontFamily: SERIF,
                 fontSize: 20,
-                color: palette.paperLight + 'aa',
+                color: palette.paperLight + 'cc',
                 marginTop: 4,
+                whiteSpace: 'nowrap',
               }}
             >
               {currentLocText}
@@ -1664,20 +2195,21 @@ const ContinuousFieldStage: React.FC<{ frame: number }> = ({ frame }) => {
           borderTop: `2px solid ${palette.blue}22`,
           display: 'flex',
           justifyContent: 'space-between',
-          fontFamily: SERIF,
           fontSize: 22,
           fontWeight: 700,
           color: palette.inkSoft,
         }}
       >
-        <span>连续场核心：任意点均有属性值</span>
-        <span style={{ color: palette.amber }}>无从无到有的明确界限 (哪怕数值为零)</span>
+        <span>连续场核心：空间任意位置均有明确属性值</span>
+        <span style={{ color: palette.amber }}>无从无到有的突变界限 (数值为零亦是有效值)</span>
       </div>
     </div>
   );
 };
 
+// ==========================================
 // Stage 5: Centered Grand Synthesis Comparison Matrix (Frames 3996 - 4436)
+// ==========================================
 const GrandSynthesis: React.FC<{ frame: number }> = ({ frame }) => {
   const { fps } = useVideoConfig();
   const T = getTimestamps(fps);
@@ -1707,16 +2239,17 @@ const GrandSynthesis: React.FC<{ frame: number }> = ({ frame }) => {
         padding: 36,
         display: 'flex',
         flexDirection: 'column',
+        fontFamily: SERIF,
       }}
     >
       <div
         style={{
           textAlign: 'center',
-          fontFamily: SERIF,
           fontSize: 38,
           fontWeight: 700,
           color: palette.ink,
           marginBottom: 24,
+          whiteSpace: 'nowrap',
         }}
       >
         人类大脑看待世界的两类地理实体总结
@@ -1733,14 +2266,15 @@ const GrandSynthesis: React.FC<{ frame: number }> = ({ frame }) => {
             padding: 30,
             display: 'flex',
             flexDirection: 'column',
+            boxShadow: `0 12px 30px ${palette.clay}15`,
           }}
         >
           <div
             style={{
-              fontFamily: SERIF,
               fontSize: 40,
               fontWeight: 700,
               color: palette.clay,
+              whiteSpace: 'nowrap',
             }}
           >
             离散对象
@@ -1752,7 +2286,6 @@ const GrandSynthesis: React.FC<{ frame: number }> = ({ frame }) => {
               display: 'flex',
               flexDirection: 'column',
               gap: 16,
-              fontFamily: SERIF,
               fontSize: 24,
               color: palette.ink,
               lineHeight: 1.5,
@@ -1762,19 +2295,19 @@ const GrandSynthesis: React.FC<{ frame: number }> = ({ frame }) => {
               <span style={{ color: palette.clay, fontWeight: 700, whiteSpace: 'nowrap' }}>
                 ● 边界:
               </span>
-              <span>几何与物理界限明确分明</span>
+              <span style={{ whiteSpace: 'nowrap' }}>几何与物理界限明确分明</span>
             </div>
             <div style={{ display: 'flex', gap: 12 }}>
               <span style={{ color: palette.clay, fontWeight: 700, whiteSpace: 'nowrap' }}>
                 ● 计数:
               </span>
-              <span>独立个体，可被逐一计数</span>
+              <span style={{ whiteSpace: 'nowrap' }}>独立个体，可被逐一计数</span>
             </div>
             <div style={{ display: 'flex', gap: 12 }}>
               <span style={{ color: palette.clay, fontWeight: 700, whiteSpace: 'nowrap' }}>
                 ● 分布:
               </span>
-              <span>内部有实体，外部无实体</span>
+              <span style={{ whiteSpace: 'nowrap' }}>内部有实体，外部无实体</span>
             </div>
           </div>
 
@@ -1785,14 +2318,14 @@ const GrandSynthesis: React.FC<{ frame: number }> = ({ frame }) => {
               background: palette.clay + '18',
               border: `2px solid ${palette.clay}`,
               borderRadius: 12,
-              fontFamily: SERIF,
               fontSize: 26,
               fontWeight: 700,
               color: palette.clay,
               textAlign: 'center',
+              whiteSpace: 'nowrap',
             }}
           >
-            映射为 GIS → 矢量模型
+            映射为 GIS ➔ 矢量模型 (Vector)
           </div>
         </div>
 
@@ -1806,14 +2339,15 @@ const GrandSynthesis: React.FC<{ frame: number }> = ({ frame }) => {
             padding: 30,
             display: 'flex',
             flexDirection: 'column',
+            boxShadow: `0 12px 30px ${palette.blue}15`,
           }}
         >
           <div
             style={{
-              fontFamily: SERIF,
               fontSize: 40,
               fontWeight: 700,
               color: palette.blue,
+              whiteSpace: 'nowrap',
             }}
           >
             连续场
@@ -1825,7 +2359,6 @@ const GrandSynthesis: React.FC<{ frame: number }> = ({ frame }) => {
               display: 'flex',
               flexDirection: 'column',
               gap: 16,
-              fontFamily: SERIF,
               fontSize: 24,
               color: palette.ink,
               lineHeight: 1.5,
@@ -1835,19 +2368,19 @@ const GrandSynthesis: React.FC<{ frame: number }> = ({ frame }) => {
               <span style={{ color: palette.blue, fontWeight: 700, whiteSpace: 'nowrap' }}>
                 ● 边界:
               </span>
-              <span>无从无到有的明确界限</span>
+              <span style={{ whiteSpace: 'nowrap' }}>无从无到有的明确界限</span>
             </div>
             <div style={{ display: 'flex', gap: 12 }}>
               <span style={{ color: palette.blue, fontWeight: 700, whiteSpace: 'nowrap' }}>
                 ● 计数:
               </span>
-              <span>空间连续分布，不可单独计数</span>
+              <span style={{ whiteSpace: 'nowrap' }}>空间连续分布，不可单独计数</span>
             </div>
             <div style={{ display: 'flex', gap: 12 }}>
               <span style={{ color: palette.blue, fontWeight: 700, whiteSpace: 'nowrap' }}>
                 ● 分布:
               </span>
-              <span>任意点必有具体数值 (哪怕为0)</span>
+              <span style={{ whiteSpace: 'nowrap' }}>任意点必有具体数值 (哪怕为0)</span>
             </div>
           </div>
 
@@ -1858,14 +2391,14 @@ const GrandSynthesis: React.FC<{ frame: number }> = ({ frame }) => {
               background: palette.blue + '18',
               border: `2px solid ${palette.blue}`,
               borderRadius: 12,
-              fontFamily: SERIF,
               fontSize: 26,
               fontWeight: 700,
               color: palette.blue,
               textAlign: 'center',
+              whiteSpace: 'nowrap',
             }}
           >
-            映射为 GIS → 栅格模型
+            映射为 GIS ➔ 栅格模型 (Raster)
           </div>
         </div>
       </div>

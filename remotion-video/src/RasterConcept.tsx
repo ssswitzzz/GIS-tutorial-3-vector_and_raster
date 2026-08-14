@@ -1157,33 +1157,63 @@ const RasterJaggiesStage: React.FC<{ frame: number }> = ({ frame }) => {
             低分辨率（马赛克锯齿明显）
           </div>
           <svg width="280" height="280" viewBox="0 0 280 280">
+            {/* Low Res Faint Background Grid */}
+            {Array.from({ length: 7 }).map((_, i) => (
+              <React.Fragment key={`grid-low-${i}`}>
+                <line
+                  x1={26 + i * 38}
+                  y1={26}
+                  x2={26 + i * 38}
+                  y2={254}
+                  stroke={palette.clay + '20'}
+                  strokeWidth="1"
+                  strokeDasharray="2 2"
+                />
+                <line
+                  x1={26}
+                  y1={26 + i * 38}
+                  x2={254}
+                  y2={26 + i * 38}
+                  stroke={palette.clay + '20'}
+                  strokeWidth="1"
+                  strokeDasharray="2 2"
+                />
+              </React.Fragment>
+            ))}
+
+            {/* Rasterized Pixel Cells */}
+            {Array.from({ length: 6 }).map((_, r) =>
+              Array.from({ length: 6 }).map((__, c) => {
+                const dx = (c - 2.5) * 38;
+                const dy = (r - 2.5) * 38;
+                const inCircle = Math.sqrt(dx * dx + dy * dy) <= 105;
+                if (!inCircle) return null;
+                return (
+                  <rect
+                    key={`low-${r}-${c}`}
+                    x={26 + c * 38 + 1}
+                    y={26 + r * 38 + 1}
+                    width="36"
+                    height="36"
+                    fill={palette.clay + '55'}
+                    stroke={palette.clay}
+                    strokeWidth="2"
+                    rx="2"
+                  />
+                );
+              })
+            )}
+
+            {/* Reference True Vector Circle */}
             <circle
               cx="140"
               cy="140"
-              r="110"
+              r="105"
               fill="none"
-              stroke={palette.inkSoft}
-              strokeWidth="2"
+              stroke={palette.ink}
+              strokeWidth="2.5"
               strokeDasharray="6 6"
             />
-            {[
-              [1, 2], [1, 3], [1, 4],
-              [2, 1], [2, 2], [2, 3], [2, 4], [2, 5],
-              [3, 1], [3, 2], [3, 3], [3, 4], [3, 5],
-              [4, 1], [4, 2], [4, 3], [4, 4], [4, 5],
-              [5, 2], [5, 3], [5, 4],
-            ].map(([r, c]) => (
-              <rect
-                key={`${r}-${c}`}
-                x={c * 42}
-                y={r * 42}
-                width="40"
-                height="40"
-                fill={palette.clay + '66'}
-                stroke={palette.clay}
-                strokeWidth="2"
-              />
-            ))}
           </svg>
           <div
             style={{
@@ -1224,34 +1254,61 @@ const RasterJaggiesStage: React.FC<{ frame: number }> = ({ frame }) => {
             高分辨率（细化像元拟合边界）
           </div>
           <svg width="280" height="280" viewBox="0 0 280 280">
-            <circle
-              cx="140"
-              cy="140"
-              r="110"
-              fill={palette.blue + '44'}
-              stroke={palette.blue}
-              strokeWidth="4"
-            />
-            {Array.from({ length: 14 }).map((_, r) =>
-              Array.from({ length: 14 }).map((__, c) => {
-                const dx = c * 20 - 140;
-                const dy = r * 20 - 140;
-                const inCircle = Math.sqrt(dx * dx + dy * dy) <= 110;
+            {/* High Res Faint Background Grid */}
+            {Array.from({ length: 19 }).map((_, i) => (
+              <React.Fragment key={`grid-high-${i}`}>
+                <line
+                  x1={23 + i * 13}
+                  y1={23}
+                  x2={23 + i * 13}
+                  y2={257}
+                  stroke={palette.blue + '18'}
+                  strokeWidth="0.8"
+                />
+                <line
+                  x1={23}
+                  y1={23 + i * 13}
+                  x2={257}
+                  y2={23 + i * 13}
+                  stroke={palette.blue + '18'}
+                  strokeWidth="0.8"
+                />
+              </React.Fragment>
+            ))}
+
+            {/* High Res Rasterized Pixel Cells */}
+            {Array.from({ length: 18 }).map((_, r) =>
+              Array.from({ length: 18 }).map((__, c) => {
+                const dx = (c - 8.5) * 13;
+                const dy = (r - 8.5) * 13;
+                const inCircle = Math.sqrt(dx * dx + dy * dy) <= 105;
                 if (!inCircle) return null;
                 return (
                   <rect
-                    key={`${r}-${c}`}
-                    x={c * 20}
-                    y={r * 20}
-                    width="19"
-                    height="19"
+                    key={`high-${r}-${c}`}
+                    x={23 + c * 13 + 0.5}
+                    y={23 + r * 13 + 0.5}
+                    width="12"
+                    height="12"
                     fill={palette.blue + '55'}
                     stroke={palette.blue}
                     strokeWidth="0.8"
+                    rx="1"
                   />
                 );
               })
             )}
+
+            {/* Reference True Vector Circle */}
+            <circle
+              cx="140"
+              cy="140"
+              r="105"
+              fill="none"
+              stroke={palette.blue}
+              strokeWidth="2.5"
+              strokeDasharray="6 6"
+            />
           </svg>
           <div
             style={{
