@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   AbsoluteFill,
+  Easing,
   interpolate,
   spring,
   useCurrentFrame,
@@ -814,6 +815,118 @@ const SimpleFeatureStage: React.FC<{ frame: number }> = ({ frame }) => {
 };
 
 // =============================================================================
+// Act 2 辅助：确定性伪随机哈希（用于生成可复现的浮点偏差）
+// =============================================================================
+const seededRandom = (seed: number): number => {
+  let s = seed;
+  s = ((s >>> 0) * 1103515245 + 12345) & 0x7fffffff;
+  return (s & 0xffff) / 0xffff;
+};
+
+// =============================================================================
+// Act 2 辅助：生成沿共享边界的密集采样点（两条独立数字化折线 + 预烘焙微差）
+// =============================================================================
+// 居中基准 X=450（画布 900x560 的水平正中心）
+const BOUNDARY_Y_START = 80;
+const BOUNDARY_Y_END = 480;
+const BOUNDARY_CENTER_X = 450;
+const NUM_BOUNDARY_SAMPLES = 44; // 密集采样点数量
+
+// 预计算采样点（组件外静态数据，避免重渲染开销）
+const boundaryJxPoints: { x: number; y: number }[] = [];
+const boundaryFjPoints: { x: number; y: number }[] = [];
+
+// 最大微观偏移量（在 SVG 坐标系下的实际像素值）
+// 在 cameraScale=18 时，在屏幕上清晰呈现为 ±30px 左右的典型裂隙与重叠
+const MAX_MICRO_OFFSET = 2.2;
+
+for (let i = 0; i <= NUM_BOUNDARY_SAMPLES; i++) {
+  const t = i / NUM_BOUNDARY_SAMPLES;
+  const y = BOUNDARY_Y_START + t * (BOUNDARY_Y_END - BOUNDARY_Y_START);
+
+  // 首尾两点强制共线（两省在省界端点处严格闭合相交）
+  if (i === 0 || i === NUM_BOUNDARY_SAMPLES) {
+    boundaryJxPoints.push({ x: BOUNDARY_CENTER_X, y });
+    boundaryFjPoints.push({ x: BOUNDARY_CENTER_X, y });
+    continue;
+  }
+
+  // 为江西、福建分别生成独立的伪随机偏差（中频波动，模拟真实数字化手抖/浮点截断）
+  const randJx = Math.sin(t * Math.PI * 3.2 + 0.4) * 0.7 + (seededRandom(i * 137 + 29) * 2 - 1) * 0.3;
+  const randFj = Math.sin(t * Math.PI * 2.8 + 2.1) * 0.7 + (seededRandom(i * 251 + 73) * 2 - 1) * 0.3;
+
+  // 端点附近平滑收敛到 0（正弦包络）
+  const envelope = Math.sin(t * Math.PI);
+
+  const jxOffset = randJx * MAX_MICRO_OFFSET * envelope;
+  const fjOffset = randFj * MAX_MICRO_OFFSET * envelope;
+
+  boundaryJxPoints.push({ x: BOUNDARY_CENTER_X + jxOffset, y });
+  boundaryFjPoints.push({ x: BOUNDARY_CENTER_X + fjOffset, y });
+}
+
+// 辅助函数：将点数组转换为 SVG path d 字符串
+const pointsToPathD = (pts: { x: number; y: number }[]) =>
+  pts.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(3)} ${p.y.toFixed(3)}`).join(' ');
+
+// 辅助函数：生成闭合区域的 path（用于裂隙 / 重叠高亮）
+const buildRegionPaths = () => {
+  const gapSegments: string[] = [];   // 江西在左，福建在右 → 缝隙 (漏空)
+  const overlapSegments: string[] = []; // 江西在右，福建在左 → 交叉重叠
+
+  for (let i = 0; i < NUM_BOUNDARY_SAMPLES; i++) {
+    const jx0 = boundaryJxPoints[i];
+    const jx1 = boundaryJxPoints[i + 1];
+    const fj0 = boundaryFjPoints[i];
+    const fj1 = boundaryFjPoints[i + 1];
+
+    const midJxX = (jx0.x + jx1.x) / 2;
+    const midFjX = (fj0.x + fj1.x) / 2;
+    const diff = midFjX - midJxX;
+
+    if (Math.abs(diff) < 0.01) continue;
+
+    const quadD = `M ${jx0.x.toFixed(3)} ${jx0.y.toFixed(3)} L ${jx1.x.toFixed(3)} ${jx1.y.toFixed(3)} L ${fj1.x.toFixed(3)} ${fj1.y.toFixed(3)} L ${fj0.x.toFixed(3)} ${fj0.y.toFixed(3)} Z`;
+
+    if (diff > 0) {
+      gapSegments.push(quadD);
+    } else {
+      overlapSegments.push(quadD);
+    }
+  }
+
+  return { gapSegments, overlapSegments };
+};
+
+const { gapSegments, overlapSegments } = buildRegionPaths();
+
+// 找到最大偏差处的 Y 位置和偏差值（用于标注）
+const findMaxDivergence = () => {
+  let maxGapY = 220, maxGapDx = 0, maxGapJxX = 448, maxGapFjX = 452;
+  let maxOverlapY = 340, maxOverlapDx = 0, maxOverlapJxX = 452, maxOverlapFjX = 448;
+
+  for (let i = 1; i < NUM_BOUNDARY_SAMPLES; i++) {
+    const dx = boundaryFjPoints[i].x - boundaryJxPoints[i].x;
+    if (dx > maxGapDx) {
+      maxGapDx = dx;
+      maxGapY = boundaryJxPoints[i].y;
+      maxGapJxX = boundaryJxPoints[i].x;
+      maxGapFjX = boundaryFjPoints[i].x;
+    }
+    if (-dx > maxOverlapDx) {
+      maxOverlapDx = -dx;
+      maxOverlapY = boundaryJxPoints[i].y;
+      maxOverlapJxX = boundaryJxPoints[i].x;
+      maxOverlapFjX = boundaryFjPoints[i].x;
+    }
+  }
+
+  return { maxGapY, maxGapDx, maxGapJxX, maxGapFjX, maxOverlapY, maxOverlapDx, maxOverlapJxX, maxOverlapFjX };
+};
+
+const divergenceInfo = findMaxDivergence();
+
+// =============================================================================
 // Act 2: 精度与缝隙阶段 (真实地理抽象 + 显微真实裂隙重叠 + LaTeX 公式)
 // =============================================================================
 const PrecisionGapStage: React.FC<{ frame: number }> = ({ frame }) => {
@@ -836,38 +949,70 @@ const PrecisionGapStage: React.FC<{ frame: number }> = ({ frame }) => {
     clamp
   );
 
+  // 镜头平滑连续深层推拉 (从宏观 1.0x 平滑推入至显微 18x)
   const zoomProgress = interpolate(
     frame,
-    [T.act2_zoom_in, T.act2_zoom_in + Math.round(fps * 1.5)],
+    [T.act2_zoom_in, T.act2_zoom_in + Math.round(fps * 2.5)],
     [0, 1],
-    clamp
+    {
+      extrapolateLeft: 'clamp',
+      extrapolateRight: 'clamp',
+      easing: Easing.bezier(0.22, 0.61, 0.36, 1),
+    }
   );
 
-  const divergeProgress = interpolate(
+  // 浮点离散采样微差与独立边界的高亮显化
+  const lineHighlight = interpolate(
     frame,
-    [T.act2_lines_diverge, T.act2_lines_diverge + Math.round(fps * 1.2)],
+    [T.act2_lines_diverge, T.act2_lines_diverge + Math.round(fps * 0.8)],
     [0, 1],
     clamp
   );
 
+  // 坐标标牌与微观测量尺寸弹出
+  const coordSpring = spring({
+    frame: frame - T.act2_coord_offset,
+    fps,
+    config: { damping: 16, stiffness: 85 },
+  });
+
+  // 缝隙与重叠警告卡片
   const calloutSpring = spring({
     frame: frame - T.act2_gap_and_overlap,
     fps,
     config: { damping: 18, stiffness: 80 },
   });
 
+  // 宏观视角共享省界呼吸脉冲
   const borderPulse =
     frame >= T.act2_adjacent_border && frame < T.act2_zoom_in
       ? Math.sin(((frame - T.act2_adjacent_border) / fps) * Math.PI * 4) * 0.3 + 0.7
       : 1;
 
-  // 摄像机镜头平滑推拉参数 (由远及近)
-  const cameraScale = 1 + zoomProgress * 1.35; // 1.0 -> 2.35
-  const cameraTx = zoomProgress * -40;
-  const cameraTy = zoomProgress * -10;
+  // 摄像机镜头平滑推拉：严格聚焦于中心 (450, 280)
+  const cameraScale = 1 + zoomProgress * 17; // 1.0 -> 18.0
 
-  // 边界微观偏离量 (随采样误差平滑张开)
-  const d = 55 * divergeProgress;
+  // 描边宽度与微观 pattern 随放大等比缩小，保持视觉精致
+  const strokeScale = 1 / cameraScale;
+  const jxStrokeW = 2.5 * strokeScale;
+  const fjStrokeW = 2.5 * strokeScale;
+
+  // 江西多边形路径：左侧轮廓 + 共享边（密集采样）
+  const jxOuterPath = `M ${boundaryJxPoints[0].x} ${boundaryJxPoints[0].y} L 360 65 L 230 85 L 140 180 L 120 280 L 140 390 L 230 490 L 360 510 L ${boundaryJxPoints[NUM_BOUNDARY_SAMPLES].x} ${boundaryJxPoints[NUM_BOUNDARY_SAMPLES].y}`;
+  const jxBoundaryReverse = [...boundaryJxPoints].reverse().map((p) => `L ${p.x.toFixed(3)} ${p.y.toFixed(3)}`).join(' ');
+  const jxPolygonD = jxOuterPath + ' ' + jxBoundaryReverse + ' Z';
+
+  // 福建多边形路径：共享边（密集采样）+ 右侧轮廓
+  const fjBoundaryForward = boundaryFjPoints.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(3)} ${p.y.toFixed(3)}`).join(' ');
+  const fjPolygonD = fjBoundaryForward + ` L 450 480 L 470 510 L 600 470 L 690 390 L 740 300 L 760 210 L 710 110 L 580 75 L 450 80 Z`;
+
+  // 边界折线路径
+  const jxBoundaryD = pointsToPathD(boundaryJxPoints);
+  const fjBoundaryD = pointsToPathD(boundaryFjPoints);
+
+  // 动态 Hatched Pattern 的间距 (在当前缩放下屏幕上保持 8~12px 左右的密集斜线)
+  const hatchPatternSize = 0.6 * Math.max(1, 18 / cameraScale);
+  const hatchStrokeWidth = 0.15 * Math.max(1, 18 / cameraScale);
 
   return (
     <div
@@ -958,7 +1103,7 @@ const PrecisionGapStage: React.FC<{ frame: number }> = ({ frame }) => {
                   background: palette.clay + '18',
                   border: `2px solid ${palette.clay}`,
                   color: palette.clay,
-                  padding: '4px 12px',
+                  padding: '4px 14px',
                   borderRadius: 20,
                   fontSize: 18,
                   fontWeight: 700,
@@ -966,11 +1111,11 @@ const PrecisionGapStage: React.FC<{ frame: number }> = ({ frame }) => {
                   whiteSpace: 'nowrap',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 6,
+                  gap: 8,
                   flexShrink: 0,
                 }}
               >
-                <span>🔍 边界局部特写</span>
+                <span>🔍 连续无级放大：{Math.round(cameraScale * 10) / 10}× 特写</span>
               </div>
             )}
           </div>
@@ -986,13 +1131,13 @@ const PrecisionGapStage: React.FC<{ frame: number }> = ({ frame }) => {
               overflow: 'hidden',
             }}
           >
-            {/* 摄像机变换层 */}
+            {/* 摄像机变换层：严格以中心点 (450, 280) 缩放 */}
             <div
               style={{
                 width: '100%',
                 height: '100%',
-                transformOrigin: '48% 50%',
-                transform: `scale(${cameraScale}) translate(${cameraTx}px, ${cameraTy}px)`,
+                transformOrigin: '450px 280px',
+                transform: `scale(${cameraScale})`,
               }}
             >
               <svg width="100%" height="100%" viewBox="0 0 900 560">
@@ -1012,11 +1157,26 @@ const PrecisionGapStage: React.FC<{ frame: number }> = ({ frame }) => {
                     />
                   </pattern>
 
-                  {/* 拓扑裂隙斜线填充 */}
+                  {/* 显微高精网格 */}
+                  <pattern
+                    id="grid-micro"
+                    width="4"
+                    height="4"
+                    patternUnits="userSpaceOnUse"
+                  >
+                    <path
+                      d="M 4 0 L 0 0 0 4"
+                      fill="none"
+                      stroke={palette.ink + '12'}
+                      strokeWidth="0.3"
+                    />
+                  </pattern>
+
+                  {/* 拓扑裂隙微观密集斜线 (Hatched Lines) */}
                   <pattern
                     id="sliver-stripes"
-                    width="10"
-                    height="10"
+                    width={hatchPatternSize}
+                    height={hatchPatternSize}
                     patternTransform="rotate(45 0 0)"
                     patternUnits="userSpaceOnUse"
                   >
@@ -1024,89 +1184,142 @@ const PrecisionGapStage: React.FC<{ frame: number }> = ({ frame }) => {
                       x1="0"
                       y1="0"
                       x2="0"
-                      y2="10"
+                      y2={hatchPatternSize}
                       stroke={palette.clay}
-                      strokeWidth="3"
+                      strokeWidth={hatchStrokeWidth}
+                    />
+                  </pattern>
+
+                  {/* 交叉重叠微观双向密集网格 (Crosshatch) */}
+                  <pattern
+                    id="overlap-grid"
+                    width={hatchPatternSize}
+                    height={hatchPatternSize}
+                    patternTransform="rotate(-45 0 0)"
+                    patternUnits="userSpaceOnUse"
+                  >
+                    <line
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2={hatchPatternSize}
+                      stroke={palette.amber}
+                      strokeWidth={hatchStrokeWidth}
+                    />
+                    <line
+                      x1="0"
+                      y1="0"
+                      x2={hatchPatternSize}
+                      y2="0"
+                      stroke={palette.amber}
+                      strokeWidth={hatchStrokeWidth}
                     />
                   </pattern>
                 </defs>
 
+                {/* 坐标底图网格 */}
                 <rect width="900" height="560" fill="url(#grid-sub)" />
+                {zoomProgress > 0.4 && (
+                  <rect
+                    width="900"
+                    height="560"
+                    fill="url(#grid-micro)"
+                    opacity={(zoomProgress - 0.4) * 1.5}
+                  />
+                )}
 
-                {/* 江西省多边形面 (西侧，含边界微观曲线) */}
+                {/* 江西省多边形面 (P₁ - 独立数字化多边形，共享边使用密集采样) */}
                 <path
-                  d={`M 340 70 L 220 90 L 140 180 L 120 280 L 140 390 L 220 490 L 340 510 L 420 480 C ${420 + d} 410, ${410 + d} 350, 410 280 C ${410 - d} 210, ${430 - d} 150, 430 80 Z`}
+                  d={jxPolygonD}
                   fill={palette.sage + '28'}
                   stroke={palette.sage}
-                  strokeWidth={3}
+                  strokeWidth={Math.max(jxStrokeW, 0.3)}
                   strokeLinejoin="round"
                 />
 
-                {/* 福建省多边形面 (东侧，含边界微观曲线) */}
+                {/* 福建省多边形面 (P₂ - 独立数字化多边形，共享边使用密集采样) */}
                 <path
-                  d={`M 430 80 L 560 80 L 680 110 L 730 210 L 710 300 L 660 390 L 570 470 L 440 510 L 420 480 C ${420 - d} 410, ${410 - d} 350, 410 280 C ${410 + d} 210, ${430 + d} 150, 430 80 Z`}
+                  d={fjPolygonD}
                   fill={palette.blue + '28'}
                   stroke={palette.blue}
-                  strokeWidth={3}
+                  strokeWidth={Math.max(fjStrokeW, 0.3)}
                   strokeLinejoin="round"
                 />
 
-                {/* 1. 拓扑裂隙区域 (严格限定在上交点 430,80 与中交点 410,280 之间，无溢出) */}
-                {divergeProgress > 0.01 && (
-                  <path
-                    d={`M 430 80 C ${430 - d} 150, ${410 - d} 210, 410 280 C ${410 + d} 210, ${430 + d} 150, 430 80 Z`}
-                    fill="url(#sliver-stripes)"
-                    stroke={palette.clay}
-                    strokeWidth={2}
-                    opacity={divergeProgress}
-                  />
-                )}
+                {/* 裂隙区域高亮：半透明底色 + 密致斜线条纹 */}
+                {lineHighlight > 0.01 && gapSegments.map((d, idx) => (
+                  <g key={`gap-group-${idx}`} opacity={lineHighlight}>
+                    {/* 半透明底色填充 */}
+                    <path
+                      d={d}
+                      fill={palette.clay + '40'}
+                    />
+                    {/* 密集斜线条纹 */}
+                    <path
+                      d={d}
+                      fill="url(#sliver-stripes)"
+                      stroke={palette.clay}
+                      strokeWidth={Math.max(0.4 * strokeScale, 0.08)}
+                      strokeDasharray={`${1.5 * strokeScale} ${1 * strokeScale}`}
+                    />
+                  </g>
+                ))}
 
-                {/* 2. 交叉重叠区域 (严格限定在中交点 410,280 与下交点 420,480 之间，无溢出) */}
-                {divergeProgress > 0.01 && (
-                  <path
-                    d={`M 410 280 C ${410 + d} 350, ${420 + d} 410, 420 480 C ${420 - d} 410, ${410 - d} 350, 410 280 Z`}
-                    fill={palette.amber + '88'}
-                    stroke={palette.amber}
-                    strokeWidth={2}
-                    opacity={divergeProgress}
-                  />
-                )}
+                {/* 重叠区域高亮：半透明底色 + 密致双向交叉网格 */}
+                {lineHighlight > 0.01 && overlapSegments.map((d, idx) => (
+                  <g key={`overlap-group-${idx}`} opacity={lineHighlight}>
+                    {/* 半透明底色填充 */}
+                    <path
+                      d={d}
+                      fill={palette.amber + '45'}
+                    />
+                    {/* 密集网格条纹 */}
+                    <path
+                      d={d}
+                      fill="url(#overlap-grid)"
+                      stroke={palette.amber}
+                      strokeWidth={Math.max(0.4 * strokeScale, 0.08)}
+                      strokeDasharray={`${1.5 * strokeScale} ${1 * strokeScale}`}
+                    />
+                  </g>
+                ))}
 
-                {/* 江西数字化边界曲线 (绿色) */}
+                {/* 江西数字化边界折线 (绿色，密集采样) */}
                 <path
-                  d={`M 430 80 C ${430 - d} 150, ${410 - d} 210, 410 280 C ${410 + d} 350, ${420 + d} 410, 420 480`}
+                  d={jxBoundaryD}
                   fill="none"
                   stroke={palette.sage}
-                  strokeWidth={divergeProgress > 0.1 ? 5 : 4}
+                  strokeWidth={Math.max(3.2 * strokeScale, 0.35)}
                   strokeLinecap="round"
+                  strokeLinejoin="round"
                 />
 
-                {/* 福建数字化边界曲线 (蓝色) */}
+                {/* 福建数字化边界折线 (蓝色，密集采样) */}
                 <path
-                  d={`M 430 80 C ${430 + d} 150, ${410 + d} 210, 410 280 C ${410 - d} 350, ${420 - d} 410, 420 480`}
+                  d={fjBoundaryD}
                   fill="none"
                   stroke={palette.blue}
-                  strokeWidth={divergeProgress > 0.1 ? 5 : 4}
+                  strokeWidth={Math.max(3.2 * strokeScale, 0.35)}
                   strokeLinecap="round"
+                  strokeLinejoin="round"
                 />
 
-                {/* 宏观视角共享省界高亮 (未放大时闪烁提示) */}
-                {zoomProgress < 0.8 && (
+                {/* 宏观视角共享省界呼吸高亮 (未放大时平滑提示) */}
+                {zoomProgress < 0.7 && (
                   <path
-                    d="M 430 80 C 430 150, 410 210, 410 280 C 410 350, 420 410, 420 480"
+                    d={`M ${BOUNDARY_CENTER_X} ${BOUNDARY_Y_START} L ${BOUNDARY_CENTER_X} ${BOUNDARY_Y_END}`}
                     fill="none"
                     stroke={palette.amber}
-                    strokeWidth={6}
+                    strokeWidth={4}
                     strokeDasharray="6 6"
                     opacity={(1 - zoomProgress) * borderPulse}
                   />
                 )}
 
-                {/* 宏观省份名称 (随放大平滑淡出) */}
-                <g opacity={Math.max(0, 1 - zoomProgress * 2)}>
+                {/* 宏观省份名称 (随镜头放大平滑淡出) */}
+                <g opacity={Math.max(0, 1 - zoomProgress * 2.2)}>
                   <text
-                    x="270"
+                    x="290"
                     y="290"
                     textAnchor="middle"
                     fill={palette.sage}
@@ -1117,7 +1330,7 @@ const PrecisionGapStage: React.FC<{ frame: number }> = ({ frame }) => {
                     江西省 (P₁)
                   </text>
                   <text
-                    x="590"
+                    x="610"
                     y="290"
                     textAnchor="middle"
                     fill={palette.blue}
@@ -1128,7 +1341,7 @@ const PrecisionGapStage: React.FC<{ frame: number }> = ({ frame }) => {
                     福建省 (P₂)
                   </text>
                   <text
-                    x="420"
+                    x="450"
                     y="535"
                     textAnchor="middle"
                     fill={palette.amber}
@@ -1136,35 +1349,107 @@ const PrecisionGapStage: React.FC<{ frame: number }> = ({ frame }) => {
                     fontSize={22}
                     fontWeight={700}
                   >
-                    ▲ 共享天然山脊省界（各自独立数字化）
+                    ▲ 共享天然省界（各自独立数字化）
                   </text>
                 </g>
 
-                {/* 显微多边形标注 (随放大平滑淡入，位于放大后的两侧视野中心) */}
-                <g opacity={Math.max(0, (zoomProgress - 0.4) * 1.6)}>
-                  <text
-                    x="360"
-                    y="280"
-                    textAnchor="middle"
-                    fill={palette.sage}
-                    fontFamily={SERIF}
-                    fontSize={22}
-                    fontWeight={700}
-                  >
-                    江西省 (P₁)
-                  </text>
-                  <text
-                    x="490"
-                    y="280"
-                    textAnchor="middle"
-                    fill={palette.blue}
-                    fontFamily={SERIF}
-                    fontSize={22}
-                    fontWeight={700}
-                  >
-                    福建省 (P₂)
-                  </text>
-                </g>
+                {/* 显微微观标语与精确误差测量标尺 */}
+                {zoomProgress > 0.5 && (
+                  <g opacity={Math.min(1, (zoomProgress - 0.5) * 2)}>
+                    {/* 裂隙与重叠微观标语 */}
+                    {lineHighlight > 0.1 && (
+                      <>
+                        <text
+                          x={divergenceInfo.maxGapJxX - 4 * strokeScale}
+                          y={divergenceInfo.maxGapY + 1 * strokeScale}
+                          textAnchor="end"
+                          fill={palette.clay}
+                          fontFamily={SERIF}
+                          fontSize={Math.max(6.2 * strokeScale, 0.75)}
+                          fontWeight={700}
+                          opacity={lineHighlight}
+                        >
+                          拓扑裂隙 (Sliver Gap)
+                        </text>
+
+                        <text
+                          x={divergenceInfo.maxOverlapJxX + 4 * strokeScale}
+                          y={divergenceInfo.maxOverlapY + 1 * strokeScale}
+                          textAnchor="start"
+                          fill={palette.amber}
+                          fontFamily={SERIF}
+                          fontSize={Math.max(6.2 * strokeScale, 0.75)}
+                          fontWeight={700}
+                          opacity={lineHighlight}
+                        >
+                          交叉重叠 (Overlap)
+                        </text>
+                      </>
+                    )}
+
+                    {/* 微观误差测量指示线（清晰的游标卡尺 + 两个省界采样点） */}
+                    {coordSpring > 0.01 && (
+                      <g opacity={coordSpring}>
+                        {/* 测量点江西顶点 P_赣 */}
+                        <circle
+                          cx={divergenceInfo.maxGapJxX}
+                          cy={divergenceInfo.maxGapY}
+                          r={Math.max(1.8 * strokeScale, 0.2)}
+                          fill={palette.sage}
+                          stroke={palette.paperLight}
+                          strokeWidth={Math.max(0.6 * strokeScale, 0.08)}
+                        />
+                        {/* 测量点福建顶点 P_闽 */}
+                        <circle
+                          cx={divergenceInfo.maxGapFjX}
+                          cy={divergenceInfo.maxGapY}
+                          r={Math.max(1.8 * strokeScale, 0.2)}
+                          fill={palette.blue}
+                          stroke={palette.paperLight}
+                          strokeWidth={Math.max(0.6 * strokeScale, 0.08)}
+                        />
+
+                        {/* 标尺横线与端点垂直线 */}
+                        <line
+                          x1={divergenceInfo.maxGapJxX}
+                          y1={divergenceInfo.maxGapY - 5 * strokeScale}
+                          x2={divergenceInfo.maxGapFjX}
+                          y2={divergenceInfo.maxGapY - 5 * strokeScale}
+                          stroke={palette.clay}
+                          strokeWidth={Math.max(0.8 * strokeScale, 0.1)}
+                          strokeDasharray={`${1.5 * strokeScale} ${1 * strokeScale}`}
+                        />
+                        <line
+                          x1={divergenceInfo.maxGapJxX}
+                          y1={divergenceInfo.maxGapY - 7 * strokeScale}
+                          x2={divergenceInfo.maxGapJxX}
+                          y2={divergenceInfo.maxGapY - 1 * strokeScale}
+                          stroke={palette.clay}
+                          strokeWidth={Math.max(0.8 * strokeScale, 0.1)}
+                        />
+                        <line
+                          x1={divergenceInfo.maxGapFjX}
+                          y1={divergenceInfo.maxGapY - 7 * strokeScale}
+                          x2={divergenceInfo.maxGapFjX}
+                          y2={divergenceInfo.maxGapY - 1 * strokeScale}
+                          stroke={palette.clay}
+                          strokeWidth={Math.max(0.8 * strokeScale, 0.1)}
+                        />
+                        <text
+                          x={(divergenceInfo.maxGapJxX + divergenceInfo.maxGapFjX) / 2}
+                          y={divergenceInfo.maxGapY - 9 * strokeScale}
+                          textAnchor="middle"
+                          fill={palette.clay}
+                          fontFamily={SERIF}
+                          fontSize={Math.max(5.5 * strokeScale, 0.65)}
+                          fontWeight={700}
+                        >
+                          Δd ≈ 0.35m (浮点截断微差)
+                        </text>
+                      </g>
+                    )}
+                  </g>
+                )}
               </svg>
             </div>
 
@@ -2884,27 +3169,25 @@ export const VectorTopology: React.FC = () => {
             : 'blue';
 
   return (
-    <AbsoluteFill style={{ fontFamily: SERIF, background: palette.paper }}>
-      <div
-        style={{
-          width: 1920,
-          height: 1080,
-          transform: `scale(${scale})`,
-          transformOrigin: 'top left',
-          position: 'relative',
-        }}
-      >
-        <PaperBackground accent={accent} />
-        <CenteredHeadline frame={frame} />
+    <AbsoluteFill
+      style={{
+        width: 1920,
+        height: 1080,
+        transform: `scale(${scale})`,
+        transformOrigin: 'top left',
+        overflow: 'hidden',
+      }}
+    >
+      <PaperBackground frame={frame} accent={accent} />
+      <CenteredHeadline frame={frame} />
 
-        <SimpleFeatureStage frame={frame} />
-        <PrecisionGapStage frame={frame} />
-        <TopologyDefectStage frame={frame} />
-        <ArcNodeModelStage frame={frame} />
-        <SpatialIntelligenceStage frame={frame} />
+      <SimpleFeatureStage frame={frame} />
+      <PrecisionGapStage frame={frame} />
+      <TopologyDefectStage frame={frame} />
+      <ArcNodeModelStage frame={frame} />
+      <SpatialIntelligenceStage frame={frame} />
 
-        <BottomTracker frame={frame} />
-      </div>
+      <BottomTracker frame={frame} />
     </AbsoluteFill>
   );
 };

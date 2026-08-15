@@ -55,6 +55,27 @@ When the user gives narration, split it into 4-8 beats for short segments and mo
   - If titles or explanations are required, keep them highly summarized and concise. Ensure on-screen titles are clean editorial headings (e.g. using a unified `SectionTitle` component with an eyebrow, large serif title, and short monospace subtitle).
 
 
+## Critical Hard Rules & Prohibited Patterns (不可逾越的硬性红线)
+
+1. **绝对禁止无必要英文注释与装饰性英文副标题 (Zero Gratuitous English)**:
+   - **红线规定**：除行业标准通用专业缩写（如 GIS, GPS, DEM, TIN, SQL, WKT, GeoJSON, REST API, CPU, RAM）或代码/文件格式外，**严禁在任何中文标题、卡片、图例、徽章、步骤提示、状态栏、图表旁添加无意义的英文翻译、英文副标题或装饰性英文单词**！
+   - **典型违规示例（坚决杜绝）**：
+     - ❌ `简单要素模型 (Simple Feature Model)` ➔ 建议改为纯中文：`简单要素模型`
+     - ❌ `拓扑缺失盲区 (Topology Defect Blindspot)` ➔ 建议改为纯中文：`拓扑缺失盲区`
+     - ❌ `空间智能跃迁 (Spatial Intelligence Leap)` ➔ 建议改为纯中文：`空间智能跃迁`
+     - ❌ `优势 1: 物理消除缝隙重叠 (Advantage 1: Zero Gaps)` ➔ 建议改为纯中文：`优势 1：物理彻底消除缝隙重叠`
+     - ❌ `拓扑裂隙 (Sliver Gap)` / `交叉重叠 (Overlap)` ➔ 建议改为纯中文：`拓扑裂隙 (缝隙)` / `多边形交叉重叠`
+   - **原则**：保持版面纯净，专注提升母语观众认知效率，坚决杜绝中英强行混排拼贴的廉价感。
+
+2. **数学公式与学术符号一律使用 LaTeX 规范排版 (Mandatory LaTeX for Math)**:
+   - **红线规定**：所有数学公式、几何代号、拓扑要素标号、坐标参量、时间复杂度、微积分/离散表达式，**必须使用 LaTeX (KaTeX) 排版**，严禁使用普通等宽代码字体（如 JetBrains Mono）或纯文本字符凑合！
+   - **字体职责边界**：
+     - **LaTeX (`<Latex math="..." />`)**：专用于所有数学变量与学术符号，例如多边形与节点 $P_1, P_2, V_1, V_2, A_1$、坐标 $(x_i, y_i)$、误差量 $\Delta d, \epsilon$、时间复杂度 $\mathcal{O}(1), \mathcal{O}(n)$、公式方程等。
+     - **等宽代码字体 (`JetBrains Mono`)**：严格仅用于真实编程代码、命令行 CLI 指令、文件路径扩展名（如 `.shp`, `.gdb`）、内存十六进制地址（如 `0x7FFF`）、数据表字段名等。
+   - **组件标准实现**：在项目中建立复用组件 `src/components/Latex.tsx`（基于 `katex`，导入 `katex/dist/katex.min.css`），支持通过 `style` 动态透传 `fontSize`, `color`, `fontWeight` 等属性，与周围排版完美融合。
+
+---
+
 ## Visual Style Defaults
 
 Default style for Chinese educational/explainer videos:
@@ -67,8 +88,9 @@ Default style for Chinese educational/explainer videos:
 
 Typography defaults:
 
-- Chinese serif: `Source Han Serif CN SemiBold`
-- Monospace: `JetBrains Mono`
+- Chinese serif: `Source Han Serif CN SemiBold` (思源宋体，用于所有中文文本)
+- Math & Academic Symbols: **LaTeX (KaTeX)**
+- Monospace / Code: `JetBrains Mono` (仅用于代码与技术参数)
 - Do not scale font size with viewport width.
 - Use 0 letter spacing for Chinese display text unless a local design system already differs.
 
@@ -111,6 +133,8 @@ Typography defaults:
   - Do NOT clutter the bottom tracker with verbose episode subtitles, title texts, or redundant timer progress bars. Keep the bottom bar clean and focused with centered Act Pills only (`01. 真实与二进制`, `02. 抽象与分析`, `03. 矢量与栅格`).
 - **Universal Chinese Typography Standard (全局中文字体统一为思源宋体)**:
   - ALL Chinese text (headings, body text, subtitles, card headers, tag pills, graphic badges, footers, act indicators) MUST use **`Source Han Serif CN SemiBold`** (`SERIF`). Do not use sans-serif / YaHei for Chinese body or badges unless explicitly requested.
+- **LaTeX Math Component Standard (KaTeX 公式规范)**:
+  - Any mathematical expression, variable, index, complexity notation, or formula MUST be rendered via KaTeX (`<Latex math="..." />`). Never use Monospace or raw strings for math.
 - **4K 60fps Export Resolution & Frame-Rate Standard (4K 60帧高清画质规范)**:
   - Default compositions for high-end explainer videos should support **4K 60fps** (`width: 3840, height: 2160, fps: 60`).
   - Use `getTimestamps(fps)` dynamic frame calculation (`Math.round(seconds * fps)`) so subtitle alignment scales seamlessly across 30fps and 60fps.
@@ -142,6 +166,8 @@ npx.cmd remotion still src\index.ts <CompositionId> tmp-frame-450.png --frame=45
 
 Before finishing, verify:
 
+- **No Gratuitous English**: Verify that NO titles, cards, labels, or badges contain unnecessary English translation subtitles or decorative English text.
+- **LaTeX Math Compliance**: Verify that ALL mathematical variables ($P_1, V_1, A_1, \Delta d$), formulas, and complexity notations ($\mathcal{O}(1)$) are rendered using KaTeX (`<Latex math="..." />`), never monospace code fonts or raw text.
 - The video has a clear hook, development, and payoff.
 - Every scene has a visual reason to exist.
 - Text fits and does not overlap at target resolution.

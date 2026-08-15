@@ -88,20 +88,31 @@ Keep accent count low. Use color semantically:
 - Amber: personal note, learning, transition.
 - Clay/red: warning, missing input, invalid tool.
 
-## Typography Guidance
+## Typography & Formula Standards (排版与公式规范)
 
-Use Chinese display text with a serif stack:
+### 1. Chinese Display Text (思源宋体)
+Use Chinese display text with a serif stack for all headers, body copy, and UI captions:
 
 ```ts
 const SERIF_STACK =
   "'Source Han Serif CN SemiBold', 'Source Han Serif CN', 'Source Han Serif SC', 'Noto Serif SC', SimSun, serif";
 ```
 
-Use code/status labels with:
+### 2. Math & Academic Notation (强制 LaTeX 排版)
+All mathematical variables, topology symbols ($P_1, V_1, A_1$), coordinate notations ($(x_i, y_i)$), tolerance offsets ($\Delta d, \epsilon$), and algorithmic complexity ($\mathcal{O}(1)$) **MUST be rendered using KaTeX via `<Latex math="..." />`**.
+- Do NOT use `JetBrains Mono` or raw unicode for mathematical symbols.
+- KaTeX provides beautiful typographic kerning, italicized math variables, correct subscript alignment, and consistent baseline rendering.
+
+### 3. Code & Technical Data (等宽字体)
+Use monospace strictly for actual code, CLI commands, file formats/paths (`.shp`, `.gdb`), memory addresses (`0x7F`), and SQL query snippets:
 
 ```ts
 const MONO_STACK = "'JetBrains Mono', 'Cascadia Mono', Consolas, monospace";
 ```
+
+### 4. Prohibition of Gratuitous English (严禁无必要英文副标题/装饰)
+- Do NOT attach English translations below Chinese titles (e.g. do not add "Simple Feature Model" beneath "简单要素模型", or "Topology Defect Blindspot" beneath "拓扑缺失盲区").
+- Keep screens 100% focused, pure, and clean for Chinese audience cognition.
 
 Sizing for 1920x1080:
 
