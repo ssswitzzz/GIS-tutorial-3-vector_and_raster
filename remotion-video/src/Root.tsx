@@ -6,6 +6,7 @@ import { RasterConcept } from './RasterConcept';
 import { VectorConcept } from './VectorConcept';
 import { RasterCompression } from './RasterCompression';
 import { VectorTopology } from './VectorTopology';
+import { GISSummary } from './GISSummary';
 
 export const Root: React.FC = () => {
   return (
@@ -54,6 +55,14 @@ export const Root: React.FC = () => {
         id="VectorTopology"
         component={VectorTopology}
         durationInFrames={7976}
+        fps={60}
+        width={3840}
+        height={2160}
+      />
+      <Composition
+        id="GISSummary"
+        component={GISSummary}
+        durationInFrames={3890}
         fps={60}
         width={3840}
         height={2160}
