@@ -3,6 +3,9 @@ import { Composition } from 'remotion';
 import { GISOpening } from './GISOpening';
 import { EntityTypes } from './EntityTypes';
 import { RasterConcept } from './RasterConcept';
+import { VectorConcept } from './VectorConcept';
+import { RasterCompression } from './RasterCompression';
+import { VectorTopology } from './VectorTopology';
 
 export const Root: React.FC = () => {
   return (
@@ -27,6 +30,30 @@ export const Root: React.FC = () => {
         id="RasterConcept"
         component={RasterConcept}
         durationInFrames={7882}
+        fps={60}
+        width={3840}
+        height={2160}
+      />
+      <Composition
+        id="VectorConcept"
+        component={VectorConcept}
+        durationInFrames={7642}
+        fps={60}
+        width={3840}
+        height={2160}
+      />
+      <Composition
+        id="RasterCompression"
+        component={RasterCompression}
+        durationInFrames={10722}
+        fps={60}
+        width={3840}
+        height={2160}
+      />
+      <Composition
+        id="VectorTopology"
+        component={VectorTopology}
+        durationInFrames={7976}
         fps={60}
         width={3840}
         height={2160}

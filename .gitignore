@@ -13,4 +13,6 @@ build/
 media/
 tmp-frame-*.png
 PixPin_*.png
+preview-*.png
+comp-frame-*.png
 .DS_Store

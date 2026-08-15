@@ -16,6 +16,8 @@
     "@remotion/cli": "^4.0.508",
     "@remotion/player": "^4.0.508",
     "@remotion/renderer": "^4.0.508",
+    "@types/katex": "^0.16.8",
+    "katex": "^0.18.4",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "remotion": "^4.0.508"
