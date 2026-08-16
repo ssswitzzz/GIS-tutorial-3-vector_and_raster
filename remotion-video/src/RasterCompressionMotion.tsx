@@ -580,7 +580,20 @@ const EncodingScene: React.FC<{ frame: number }> = ({ frame }) => {
 
         {/* 右侧：两大空间编码破局 (大字号，满格无留白) */}
         {isTwoMethods ? (
-          <div style={{ flex: 1.3, display: 'flex', flexDirection: 'column', gap: 20, opacity: p }}>
+          (() => {
+            const panelEnter = spring({
+              frame: frame - T.act2_two_methods,
+              fps,
+              config: { damping: 18, stiffness: 70 },
+            });
+            const panelFade = interpolate(
+              frame - T.act2_two_methods,
+              [0, Math.round(fps * 0.35)],
+              [0, 1],
+              clamp
+            );
+            return (
+          <div style={{ flex: 1.3, display: 'flex', flexDirection: 'column', gap: 20, opacity: panelFade, transform: `translateY(${(1 - panelEnter) * 30}px)` }}>
             {/* 上区域：一维连续性 · 游程编码 */}
             <div
               style={{
@@ -673,7 +686,7 @@ const EncodingScene: React.FC<{ frame: number }> = ({ frame }) => {
 
                 <div style={{ fontSize: 21, color: palette.ink, fontWeight: 700, textAlign: 'right', lineHeight: 1.4 }}>
                   超越扫描线限制，二维识别更大均质面！<br />
-                  上半区纯林地、下半区纯水体 $\rightarrow$ 仅需 2 个节点
+                  上半区纯林地、下半区纯水体 → 仅需 2 个节点
                 </div>
               </div>
 
@@ -682,6 +695,8 @@ const EncodingScene: React.FC<{ frame: number }> = ({ frame }) => {
               </div>
             </div>
           </div>
+            );
+          })()
         ) : (
           <div
             style={{
