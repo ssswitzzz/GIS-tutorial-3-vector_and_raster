@@ -9,52 +9,13 @@ import {
 import { Latex } from './components/Latex';
 import { PaperBackground } from './components/PaperBackground';
 import { clamp, MONO, palette, SERIF } from './theme';
+import { RasterCompressionMotion } from './RasterCompressionMotion';
+import { getRasterCompressionTimestamps } from './RasterCompressionTimeline';
 
 // =============================================================================
 // 精确音频时间戳（基于 60 FPS，起点 00:06:03,200 = 363.200s，总长 178.700s / 10722 帧）
 // =============================================================================
-export const getTimestamps = (fps: number) => {
-  const f = (sec: number) => Math.round(sec * fps);
-  return {
-    start: 0,
-    // Act 1: 栅格体量爆炸与矢量转化的死胡同 (134-150)
-    act1_start: 0,
-    act1_question: f(1.033), // 135: 是不是我们的 GIS 数据类型就已经很自洽了呢
-    act1_contradiction: f(5.333), // 137: 其实不然，现在的矢量和栅格分别暴露了一些问题
-    act1_raster_explode: f(10.400), // 140: 分辨率一提高，数据量成平方级暴涨
-    act1_vector_fail: f(17.466), // 143: 面对高分辨率遥感影像，转成矢量其实不现实
-    act1_contour_mess: f(23.366), // 146: 矢量勾勒所有细节，文件大概率比影像还大
-    act1_question_card: f(32.100), // 149: 怎么在不丢精度的前提下给庞大的栅格数据瘦身？
-
-    // Act 2: 空间冗余与两大编码之道 (151-156)
-    act2_start: f(38.200), // 151: 存储栅格数据，一个格子一个格子存，太费空间了
-    act2_two_methods: f(43.400), // 154: 工程师采用其他编码方式：游程编码与四叉树编码
-
-    // Act 3: 游程编码 —— 一维空间连续性压缩 (157-181)
-    act3_start: f(52.133), // 157: 先说游程编码，把大片连续像素整合起来存储
-    act3_kebab_order: f(58.566), // 159: 就像你在点菜一样，老板问你要啥
-    act3_kebab_slow: f(63.200), // 162: 我要一个羊肉串，还有一个羊肉串，再要一个...
-    act3_kebab_fast: f(70.400), // 166: 直接说我要十串羊肉串就完事了
-    act3_grid_5x5: f(73.200), // 167: 比如在5x5格子里，中心3x3是湖，其余是陆地
-    act3_scan_row1: f(84.833), // 172: 从左往右从上往下，第一行全是陆地 (陆地, 5)
-    act3_scan_row2: f(93.800), // 176: 第二行有水体，先存一格陆地，再存三格水体，最后一格陆地
-    act3_scan_rest: f(100.466), // 180: 之后以此类推
-    act3_2d_transition: f(102.300), // 181: 一行行扫还是慢，二维数组用二维视角最快
-
-    // Act 4: 四叉树编码 —— 二维自适应层次剖分 (182-200)
-    act4_start: f(106.133), // 182: 四叉树编码就是这么干的
-    act4_quad_split1: f(113.733), // 185: 海和陆地图，中心点一分为四
-    act4_quad_check: f(124.133), // 188: 检查四个小块是否全为同一种地物，是就贴标签不细分
-    act4_quad_recurse: f(129.300), // 190: 如果有其他地物，继续一分为四，直到单一为止
-    act4_pure_water: f(139.700), // 194: 如果给你一张全是水体的图，根本不需细分直接贴水体标签
-    act4_philosophy: f(150.333), // 198: 细节丰富花内存，平坦地方一律划水
-
-    // Act 5: 现代延伸 —— 金字塔与地图瓦片切片 (201-207)
-    act5_start: f(158.900), // 201: 四叉树编码是栅格金字塔与网页地图瓦片切片的底层技术
-    act5_viewport_zoom: f(167.700), // 204: 全局调用低分辨率字块，放大才加载高分辨率字块，节省渲染与内存
-    end: f(178.700),
-  };
-};
+export const getTimestamps = getRasterCompressionTimestamps;
 
 // =============================================================================
 // 顶部标题栏
@@ -1660,45 +1621,5 @@ const RasterPyramidStage: React.FC<{ frame: number }> = ({ frame }) => {
 // 主组件入口
 // =============================================================================
 export const RasterCompression: React.FC = () => {
-  const frame = useCurrentFrame();
-  const { fps, width } = useVideoConfig();
-  const T = getTimestamps(fps);
-
-  const scale = width / 1920;
-
-  const accent =
-    frame < T.act2_start
-      ? 'clay'
-      : frame < T.act3_start
-        ? 'sage'
-        : frame < T.act4_start
-          ? 'sage'
-          : frame < T.act5_start
-            ? 'amber'
-            : 'blue';
-
-  return (
-    <AbsoluteFill style={{ fontFamily: SERIF, background: palette.paper }}>
-      <div
-        style={{
-          width: 1920,
-          height: 1080,
-          transform: `scale(${scale})`,
-          transformOrigin: 'top left',
-          position: 'relative',
-        }}
-      >
-        <PaperBackground accent={accent} />
-        <CenteredHeadline frame={frame} />
-
-        <CapacityCrisisStage frame={frame} />
-        <SpatialRedundancyStage frame={frame} />
-        <RunLengthStage frame={frame} />
-        <QuadtreeStage frame={frame} />
-        <RasterPyramidStage frame={frame} />
-
-        <BottomTracker frame={frame} />
-      </div>
-    </AbsoluteFill>
-  );
+  return <RasterCompressionMotion />;
 };

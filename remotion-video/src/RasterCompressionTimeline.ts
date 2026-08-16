@@ -1,0 +1,33 @@
+export const getRasterCompressionTimestamps = (fps: number) => {
+  const f = (sec: number) => Math.round(sec * fps);
+  return {
+    start: 0,
+    act1_start: 0,
+    act1_question: f(1.033),
+    act1_contradiction: f(5.333),
+    act1_raster_explode: f(10.4),
+    act1_vector_fail: f(17.466),
+    act1_contour_mess: f(23.366),
+    act1_question_card: f(32.1),
+    act2_start: f(38.2),
+    act2_two_methods: f(43.4),
+    act3_start: f(52.133),
+    act3_kebab_order: f(58.566),
+    act3_kebab_slow: f(63.2),
+    act3_kebab_fast: f(70.4),
+    act3_grid_5x5: f(73.2),
+    act3_scan_row1: f(84.833),
+    act3_scan_row2: f(93.8),
+    act3_scan_rest: f(100.466),
+    act3_2d_transition: f(102.3),
+    act4_start: f(106.133),
+    act4_quad_split1: f(113.733),
+    act4_quad_check: f(124.133),
+    act4_quad_recurse: f(129.3),
+    act4_pure_water: f(139.7),
+    act4_philosophy: f(150.333),
+    act5_start: f(158.9),
+    act5_viewport_zoom: f(167.7),
+    end: f(178.7),
+  };
+};

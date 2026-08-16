@@ -31,7 +31,7 @@ export const PaperBackground: React.FC<{
         backgroundColor: palette.paper,
         overflow: 'hidden',
       }}
-    >
+      from={-862}>
       {/* 细腻纸质纹理背景网格 */}
       <div
         style={{
@@ -42,7 +42,6 @@ export const PaperBackground: React.FC<{
           opacity: 0.75,
         }}
       />
-
       {/* 动态优雅的等高线 (Contour Curves) */}
       <svg
         width="100%"
@@ -67,7 +66,6 @@ export const PaperBackground: React.FC<{
           />
         ))}
       </svg>
-
       {/* 边缘温润微暗角 (Vignette) */}
       <div
         style={{

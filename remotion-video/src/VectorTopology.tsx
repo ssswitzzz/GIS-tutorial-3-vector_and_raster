@@ -2,14 +2,17 @@ import React from 'react';
 import {
   AbsoluteFill,
   Easing,
+  Img,
   interpolate,
   spring,
+  staticFile,
   useCurrentFrame,
   useVideoConfig,
+  Video,
 } from 'remotion';
 import { Latex } from './components/Latex';
 import { PaperBackground } from './components/PaperBackground';
-import { clamp, palette, SERIF } from './theme';
+import { clamp, MONO, palette, SERIF } from './theme';
 
 // =============================================================================
 // 精确音频时间戳（基于 60 FPS，起点 00:09:01,933 = 541.933s，总长 132.933s / 7976 帧）
@@ -128,57 +131,48 @@ const CenteredHeadline: React.FC<{ frame: number }> = ({ frame }) => {
   });
   const fade = interpolate(relFrame, [0, Math.round(fps * 0.3)], [0, 1], clamp);
 
+  let echo = '矢量数据，又有什么致命问题？';
+  let echoSub = '简单要素结构';
+  let echoColor = palette.amber;
+  let echoStart = T.act1_vector_flaw;
+  if (frame >= T.act2_start && frame < T.act3_start) {
+    echo = frame < T.act2_zoom_in ? '同一条省界，被独立存了两遍' : '微小偏差，在放大后变成裂隙';
+    echoSub = frame < T.act2_zoom_in ? '边界重复存储' : '拓扑重叠与缝隙';
+    echoColor = palette.clay;
+    echoStart = frame < T.act2_zoom_in ? T.act2_shared_boundary : T.act2_zoom_in;
+  } else if (frame >= T.act3_start && frame < T.act4_start) {
+    echo = '坐标很多，关系却是空白';
+    echoSub = '缺乏拓扑邻接与连通';
+    echoColor = palette.clay;
+    echoStart = T.act3_no_spatial_rel;
+  } else if (frame >= T.act4_start && frame < T.act5_start) {
+    echo = frame < T.act4_extract_nodes ? '把几何问题，转成图论问题' : frame < T.act4_relational_table ? '交点成为节点，共享边成为弧段' : '几何只存一次，关系单独成表';
+    echoSub = '弧段 · 节点 · 拓扑关系表';
+    echoColor = palette.amber;
+    echoStart = frame < T.act4_extract_nodes ? T.act4_graph_theory : frame < T.act4_relational_table ? T.act4_extract_nodes : T.act4_relational_table;
+  } else if (frame >= T.act5_start) {
+    echo = frame < T.act5_spatial_logic ? '公共边只存一次，缝隙自然消失' : frame < T.act5_along_arcs_nodes ? '查一行表，就知道谁和谁相邻' : '沿弧段与节点，路径开始流动';
+    echoSub = frame < T.act5_spatial_logic ? '共享边单次存储' : frame < T.act5_along_arcs_nodes ? '拓扑关系快速查询' : '网络拓扑与路径规划';
+    echoColor = palette.blue;
+    echoStart = frame < T.act5_spatial_logic ? T.act5_start : frame < T.act5_along_arcs_nodes ? T.act5_look_at_table : T.act5_along_arcs_nodes;
+  }
+  const echoIn = spring({ frame: frame - echoStart, fps, config: { damping: 20, stiffness: 100 } });
+
   return (
-    <div
-      style={{
-        position: 'absolute',
-        left: 0,
-        right: 0,
-        top: 44,
-        textAlign: 'center',
-        opacity: fade,
-        transform: `translateY(${(1 - slideIn) * 20}px)`,
-        zIndex: 20,
-        fontFamily: SERIF,
-      }}
-    >
-      <div
-        style={{
-          color: palette.amber,
-          fontSize: 22,
-          fontWeight: 700,
-          letterSpacing: 4,
-          marginBottom: 8,
-          whiteSpace: 'nowrap',
-        }}
-      >
-        {eyebrow}
+    <>
+      <div style={{ position: 'absolute', left: 100, top: 44, width: 980, opacity: fade, transform: `translateX(${(1 - slideIn) * -24}px)`, zIndex: 20, fontFamily: SERIF }}>
+        <div style={{ color: palette.amber, fontSize: 18, fontWeight: 800, marginBottom: 7, display: 'flex', alignItems: 'center', gap: 12 }}>
+          <span style={{ width: 36, height: 2, background: palette.amber }} />
+          {eyebrow}
+        </div>
+        <div style={{ color: palette.ink, fontSize: 42, fontWeight: 800, lineHeight: 1.15, whiteSpace: 'nowrap' }}>{title}</div>
+        <div style={{ color: palette.inkSoft, fontSize: 20, marginTop: 7, fontWeight: 600, whiteSpace: 'nowrap' }}>{subtitle}</div>
       </div>
-
-      <div
-        style={{
-          color: palette.ink,
-          fontSize: 52,
-          fontWeight: 700,
-          lineHeight: 1.15,
-          whiteSpace: 'nowrap',
-        }}
-      >
-        {title}
+      <div style={{ position: 'absolute', right: 100, top: 58, width: 650, textAlign: 'right', zIndex: 22, fontFamily: SERIF, opacity: echoIn, transform: `translateY(${(1 - echoIn) * 12}px)` }}>
+        <div style={{ color: echoColor, fontSize: 26, fontWeight: 800 }}>{echo}</div>
+        <div style={{ color: palette.inkSoft, fontFamily: MONO, fontSize: 16, marginTop: 7 }}>{echoSub}</div>
       </div>
-
-      <div
-        style={{
-          color: palette.inkSoft,
-          fontSize: 24,
-          marginTop: 10,
-          fontWeight: 600,
-          whiteSpace: 'nowrap',
-        }}
-      >
-        {subtitle}
-      </div>
-    </div>
+    </>
   );
 };
 
@@ -200,71 +194,27 @@ const BottomTracker: React.FC<{ frame: number }> = ({ frame }) => {
             ? 4
             : 5;
 
-  return (
-    <div
-      style={{
-        position: 'absolute',
-        left: 0,
-        right: 0,
-        bottom: 34,
-        height: 54,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontFamily: SERIF,
-        zIndex: 50,
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-        {[
+  const items = [
           { id: 1, label: '01. 简单要素模型' },
           { id: 2, label: '02. 精度与缝隙' },
           { id: 3, label: '03. 拓扑缺失盲区' },
           { id: 4, label: '04. 弧段-节点模型' },
           { id: 5, label: '05. 空间智能跃迁' },
-        ].map((item) => {
+        ];
+  const progress = interpolate(frame, [0, T.end], [0, 1], clamp);
+  return (
+    <div style={{ position: 'absolute', left: 100, right: 100, bottom: 34, height: 58, fontFamily: SERIF, zIndex: 50 }}>
+      <div style={{ position: 'absolute', left: 0, right: 0, bottom: 5, height: 2, background: palette.ink + '18' }}>
+        <div style={{ width: `${progress * 100}%`, height: '100%', background: palette.amber }} />
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        {items.map((item) => {
           const isActive = act === item.id;
           const isPassed = act > item.id;
           return (
-            <div
-              key={item.id}
-              style={{
-                padding: '10px 24px',
-                borderRadius: 30,
-                background: isActive
-                  ? palette.ink
-                  : isPassed
-                    ? palette.sage + '22'
-                    : 'transparent',
-                color: isActive
-                  ? palette.paperLight
-                  : isPassed
-                    ? palette.sage
-                    : palette.inkSoft + '88',
-                border: `2px solid ${
-                  isActive ? palette.ink : palette.ink + '25'
-                }`,
-                fontSize: 24,
-                fontWeight: isActive ? 700 : 600,
-                whiteSpace: 'nowrap',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 10,
-              }}
-            >
-              <div
-                style={{
-                  width: 10,
-                  height: 10,
-                  borderRadius: '50%',
-                  background: isActive
-                    ? palette.amber
-                    : isPassed
-                      ? palette.sage
-                      : palette.inkSoft + '44',
-                }}
-              />
-              {item.label}
+            <div key={item.id} style={{ color: isActive ? palette.ink : isPassed ? palette.sage : palette.inkSoft + '70', fontSize: isActive ? 21 : 18, fontWeight: isActive ? 800 : 600, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 8, transform: `translateY(${isActive ? 0 : 3}px)` }}>
+              <span style={{ width: isActive ? 10 : 7, height: isActive ? 10 : 7, borderRadius: '50%', background: isActive ? palette.amber : isPassed ? palette.sage : palette.inkSoft + '40' }} />
+              <span>{item.label}</span>
             </div>
           );
         })}
@@ -313,6 +263,9 @@ const SimpleFeatureStage: React.FC<{ frame: number }> = ({ frame }) => {
 
   const card2Active = frame >= T.act1_line_is_line;
   const card3Active = frame >= T.act1_poly_is_ring;
+  const openingOut = interpolate(frame, [T.act1_store_vertices - 24, T.act1_store_vertices], [1, 0], clamp);
+  const questionIn = spring({ frame: frame - T.act1_vector_flaw, fps, config: { damping: 18, stiffness: 95 } });
+  const orbit = frame / fps;
 
   return (
     <div
@@ -328,6 +281,170 @@ const SimpleFeatureStage: React.FC<{ frame: number }> = ({ frame }) => {
         paddingTop: 80,
       }}
     >
+      {frame < T.act1_store_vertices && (
+        <div
+          style={{
+            position: 'absolute',
+            left: '50%',
+            top: '50%',
+            width: 1240,
+            height: 420,
+            transform: 'translate(-50%, -50%)',
+            opacity: openingOut,
+            fontFamily: SERIF,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 36,
+          }}
+        >
+          {/* 左侧卡片：栅格问题解决 */}
+          <div
+            style={{
+              width: 440,
+              height: 280,
+              background: palette.paperLight,
+              border: `3px solid ${palette.sage}`,
+              borderRadius: 24,
+              boxShadow: `0 20px 50px ${palette.sage}25`,
+              padding: '24px 30px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              position: 'relative',
+              overflow: 'hidden',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div
+                  style={{
+                    width: 42,
+                    height: 42,
+                    borderRadius: '50%',
+                    background: palette.sage,
+                    color: palette.paperLight,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: 22,
+                    fontWeight: 900,
+                    boxShadow: `0 0 16px ${palette.sage}80`,
+                  }}
+                >
+                  ✓
+                </div>
+                <span style={{ fontSize: 24, fontWeight: 800, color: palette.sage }}>
+                  栅格问题 · 已妥善解决
+                </span>
+              </div>
+              <span style={{ fontSize: 15, background: palette.sage + '20', color: palette.sage, padding: '4px 12px', borderRadius: 8, fontWeight: 800 }}>
+                已妥善解决
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 20, margin: '16px 0' }}>
+              {/* 旋转的小格子图符 */}
+              <div
+                style={{
+                  width: 76,
+                  height: 76,
+                  borderRadius: 16,
+                  background: palette.sage + '15',
+                  border: `2px solid ${palette.sage}40`,
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(3, 1fr)',
+                  gap: 4,
+                  padding: 8,
+                }}
+              >
+                {Array.from({ length: 9 }).map((_, i) => (
+                  <div key={i} style={{ background: palette.sage, borderRadius: 3, opacity: 0.4 + ((i + Math.floor(orbit * 4)) % 5) * 0.15 }} />
+                ))}
+              </div>
+
+              <div style={{ fontSize: 18, color: palette.inkSoft, fontWeight: 700, lineHeight: 1.4 }}>
+                压缩编码 (RLE / 四叉树)<br />
+                多尺度金字塔与切片调度
+              </div>
+            </div>
+
+            <div style={{ fontSize: 16, color: palette.sage, fontWeight: 800, textAlign: 'right' }}>
+              ✓ 空间与传输效率瓶颈打破
+            </div>
+          </div>
+
+          {/* 中间桥梁线与箭头 */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, opacity: questionIn }}>
+            <div style={{ fontSize: 36, color: palette.amber, fontWeight: 900 }}>➔</div>
+            <div style={{ fontSize: 14, color: palette.inkSoft, fontWeight: 700, fontFamily: SERIF }}>对比</div>
+          </div>
+
+          {/* 右侧卡片：矢量数据的致命问题 */}
+          {frame >= T.act1_vector_flaw && (
+            <div
+              style={{
+                width: 620,
+                height: 290,
+                background: palette.paperLight,
+                border: `3px solid ${palette.clay}`,
+                borderRadius: 24,
+                boxShadow: `0 24px 60px ${palette.clay}30`,
+                padding: '24px 30px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                position: 'relative',
+                transform: `scale(${0.9 + questionIn * 0.1})`,
+                opacity: questionIn,
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div
+                    style={{
+                      width: 42,
+                      height: 42,
+                      borderRadius: '50%',
+                      background: palette.clay,
+                      color: palette.paperLight,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: 22,
+                      fontWeight: 900,
+                      boxShadow: `0 0 16px ${palette.clay}80`,
+                    }}
+                  >
+                    !
+                  </div>
+                  <span style={{ fontSize: 24, fontWeight: 800, color: palette.clay }}>
+                    矢量数据的致命陷阱？
+                  </span>
+                </div>
+                <span style={{ fontSize: 28 }}>🤔</span>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '10px 0' }}>
+                <div style={{ fontSize: 34, fontWeight: 900, color: palette.ink, lineHeight: 1.3 }}>
+                  矢量数据，又有什么
+                  <br />
+                  <span style={{ color: palette.clay }}>致命问题与瓶颈？</span>
+                </div>
+                <Img
+                  src={staticFile('bikkuri_me_tobideru_woman.png')}
+                  style={{ height: 125, objectFit: 'contain', filter: 'drop-shadow(0 10px 15px rgba(0,0,0,0.15))' }}
+                />
+              </div>
+
+              <div style={{ background: palette.clay + '18', border: `1px solid ${palette.clay}40`, borderRadius: 12, padding: '10px 16px', fontSize: 17, fontWeight: 800, color: palette.clay, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span>⚠️ 几何数据冗余 & 拓扑关系缺失</span>
+                <span style={{ fontFamily: SERIF, fontSize: 15 }}>简单要素模型局限</span>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
       {/* 核心特征提炼横幅 */}
       <div
         style={{
@@ -2051,6 +2168,10 @@ const ArcNodeModelStage: React.FC<{ frame: number }> = ({ frame }) => {
 
   const isArc1Active = frame >= T.act4_arc1_from_v1;
   const arc1Pulse = Math.sin((frame - T.act4_arc1_from_v1) * 0.15) * 0.5 + 0.5;
+  const graphReveal = interpolate(frame, [T.act4_graph_theory, T.act4_new_topology_struct], [0, 1], clamp);
+  const arcReveal = interpolate(frame, [T.act4_extract_arcs, T.act4_extract_arcs + Math.round(fps * 1.2)], [0, 1], { ...clamp, easing: Easing.inOut(Easing.cubic) });
+  const tableReveal = spring({ frame: frame - T.act4_relational_table, fps, config: { damping: 20, stiffness: 90 } });
+  const relationProgress = interpolate(frame, [T.act4_arc1_from_v1, T.act4_arc1_right_p2], [0, 1], clamp);
 
   return (
     <div
@@ -2152,12 +2273,14 @@ const ArcNodeModelStage: React.FC<{ frame: number }> = ({ frame }) => {
                 points="120,255 425,75 425,435"
                 fill={palette.sage + '20'}
                 stroke="none"
+                opacity={graphReveal}
               />
               {/* 多边形 P2 (福建) 真实特征几何面 */}
               <polygon
                 points="425,75 730,255 425,435"
                 fill={palette.blue + '20'}
                 stroke="none"
+                opacity={graphReveal}
               />
 
               {/* 弧段 A2: V1(425,435) -> V3(120,255) */}
@@ -2166,6 +2289,9 @@ const ArcNodeModelStage: React.FC<{ frame: number }> = ({ frame }) => {
                 fill="none"
                 stroke={palette.sage}
                 strokeWidth={4}
+                pathLength={1}
+                strokeDasharray="1"
+                strokeDashoffset={1 - arcReveal}
               />
               {/* 弧段 A3: V3(120,255) -> V2(425,75) */}
               <path
@@ -2173,6 +2299,9 @@ const ArcNodeModelStage: React.FC<{ frame: number }> = ({ frame }) => {
                 fill="none"
                 stroke={palette.sage}
                 strokeWidth={4}
+                pathLength={1}
+                strokeDasharray="1"
+                strokeDashoffset={1 - arcReveal}
               />
               {/* 弧段 A4: V2(425,75) -> V4(730,255) */}
               <path
@@ -2180,6 +2309,9 @@ const ArcNodeModelStage: React.FC<{ frame: number }> = ({ frame }) => {
                 fill="none"
                 stroke={palette.blue}
                 strokeWidth={4}
+                pathLength={1}
+                strokeDasharray="1"
+                strokeDashoffset={1 - arcReveal}
               />
               {/* 弧段 A5: V4(730,255) -> V1(425,435) */}
               <path
@@ -2187,6 +2319,9 @@ const ArcNodeModelStage: React.FC<{ frame: number }> = ({ frame }) => {
                 fill="none"
                 stroke={palette.blue}
                 strokeWidth={4}
+                pathLength={1}
+                strokeDasharray="1"
+                strokeDashoffset={1 - arcReveal}
               />
 
               {/* 核心共享弧段 A1: 起点 V1(425,435, 南部) -> 终点 V2(425,75, 北部)，箭头向上(↑) */}
@@ -2196,7 +2331,21 @@ const ArcNodeModelStage: React.FC<{ frame: number }> = ({ frame }) => {
                 stroke={isArc1Active ? palette.amber : palette.ink}
                 strokeWidth={isArc1Active ? 8 : 5}
                 markerEnd="url(#arrow-arc1-up)"
+                pathLength={1}
+                strokeDasharray="1"
+                strokeDashoffset={1 - arcReveal}
               />
+
+              {arcReveal > 0 && (
+                <circle
+                  cx="425"
+                  cy={435 - arcReveal * 360}
+                  r={7 + Math.sin(frame * 0.18) * 2}
+                  fill={palette.amber}
+                  stroke={palette.paperLight}
+                  strokeWidth={3}
+                />
+              )}
 
               {/* 观察视角提示标 */}
               <g transform="translate(425, 520)">
@@ -2393,6 +2542,8 @@ const ArcNodeModelStage: React.FC<{ frame: number }> = ({ frame }) => {
             boxShadow: `0 16px 44px ${palette.ink}10`,
             display: 'flex',
             flexDirection: 'column',
+            opacity: tableReveal,
+            transform: `translateX(${(1 - tableReveal) * 34}px)`,
           }}
         >
           <div
@@ -2471,6 +2622,9 @@ const ArcNodeModelStage: React.FC<{ frame: number }> = ({ frame }) => {
                   alignItems: 'center',
                   transform: isArc1Active
                     ? `scale(${1 + arc1Pulse * 0.02})`
+                    : 'none',
+                  boxShadow: isArc1Active
+                    ? `inset ${Math.max(0, relationProgress * 620 - 620)}px 0 0 ${palette.amber}12`
                     : 'none',
                 }}
               >
@@ -3021,6 +3175,9 @@ const SpatialIntelligenceStage: React.FC<{ frame: number }> = ({ frame }) => {
                   strokeWidth={6}
                   strokeLinecap="round"
                   strokeLinejoin="round"
+                  pathLength={1}
+                  strokeDasharray="1"
+                  strokeDashoffset={1 - navProgress}
                 />
 
                 {/* 节点 */}
@@ -3092,7 +3249,7 @@ const SpatialIntelligenceStage: React.FC<{ frame: number }> = ({ frame }) => {
                   fontSize={20}
                   fontWeight={700}
                 >
-                  🚀 顺理成章执行最短路径规划算法
+                  沿弧段与节点执行最短路径规划
                 </text>
               </svg>
             </div>

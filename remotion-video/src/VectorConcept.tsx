@@ -52,71 +52,27 @@ const BottomTracker: React.FC<{ frame: number }> = ({ frame }) => {
             ? 4
             : 5;
 
-  return (
-    <div
-      style={{
-        position: 'absolute',
-        left: 0,
-        right: 0,
-        bottom: 36,
-        height: 54,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontFamily: SERIF,
-        zIndex: 50,
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-        {[
+  const items = [
           { id: 1, label: '01. 几何要素' },
           { id: 2, label: '02. 矢量精度' },
           { id: 3, label: '03. 属性关联' },
           { id: 4, label: '04. 局限与短板' },
           { id: 5, label: '05. 辩证统一' },
-        ].map((item) => {
+        ];
+  const progress = interpolate(frame, [0, T.end], [0, 1], clamp);
+  return (
+    <div style={{ position: 'absolute', left: 100, right: 100, bottom: 34, height: 58, fontFamily: SERIF, zIndex: 50 }}>
+      <div style={{ position: 'absolute', left: 0, right: 0, bottom: 5, height: 2, background: palette.ink + '18' }}>
+        <div style={{ width: `${progress * 100}%`, height: '100%', background: palette.amber }} />
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        {items.map((item) => {
           const isActive = act === item.id;
           const isPassed = act > item.id;
           return (
-            <div
-              key={item.id}
-              style={{
-                padding: '10px 24px',
-                borderRadius: 30,
-                background: isActive
-                  ? palette.ink
-                  : isPassed
-                    ? palette.blue + '22'
-                    : 'transparent',
-                color: isActive
-                  ? palette.paperLight
-                  : isPassed
-                    ? palette.blue
-                    : palette.inkSoft + '88',
-                border: `2px solid ${
-                  isActive ? palette.ink : palette.ink + '25'
-                }`,
-                fontSize: 24,
-                fontWeight: 700,
-                whiteSpace: 'nowrap',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 10,
-              }}
-            >
-              <div
-                style={{
-                  width: 10,
-                  height: 10,
-                  borderRadius: '50%',
-                  background: isActive
-                    ? palette.amber
-                    : isPassed
-                      ? palette.blue
-                      : palette.inkSoft + '44',
-                }}
-              />
-              {item.label}
+            <div key={item.id} style={{ color: isActive ? palette.ink : isPassed ? palette.blue : palette.inkSoft + '70', fontSize: isActive ? 21 : 18, fontWeight: isActive ? 800 : 600, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 8, transform: `translateY(${isActive ? 0 : 3}px)` }}>
+              <span style={{ width: isActive ? 10 : 7, height: isActive ? 10 : 7, borderRadius: '50%', background: isActive ? palette.amber : isPassed ? palette.blue : palette.inkSoft + '40' }} />
+              <span>{item.label}</span>
             </div>
           );
         })}
@@ -164,59 +120,43 @@ const CenteredHeadline: React.FC<{ frame: number }> = ({ frame }) => {
   });
   const fade = interpolate(relFrame, [0, Math.round(fps * 0.3)], [0, 1], clamp);
 
+  let echo = frame < T.point_intro ? '坐标系，给地物一个精确位置' : frame < T.line_intro ? '一个坐标，就是一个点' : frame < T.polygon_intro ? '多个折点，连接成线' : '首尾闭合，围成一个面';
+  let echoSub = 'POINT  →  LINE  →  POLYGON';
+  let echoColor = palette.blue;
+  let echoStart = frame < T.point_intro ? 0 : frame < T.line_intro ? T.point_intro : frame < T.polygon_intro ? T.line_intro : T.polygon_intro;
+  if (frame >= T.act2_precision && frame < T.act3_attributes) {
+    echo = frame < T.precision_zoom ? '解析边界，不依赖像元阶梯' : '持续放大，边缘依然平滑';
+    echoSub = 'ANALYTIC GEOMETRY';
+    echoStart = frame < T.precision_zoom ? T.act2_precision : T.precision_zoom;
+  } else if (frame >= T.act3_attributes && frame < T.act4_limitations) {
+    echo = frame < T.attr_table ? '一个几何要素，可以挂载许多属性' : '同一个编号，连接空间与语义';
+    echoSub = 'GEOMETRY  ↔  ATTRIBUTES';
+    echoStart = frame < T.attr_table ? T.act3_attributes : T.attr_table;
+  } else if (frame >= T.act4_limitations && frame < T.act5_dialectics) {
+    echo = frame < T.algebra_issue ? '连续场被切成大量碎多边形' : '几何求交，比逐格运算更复杂';
+    echoSub = 'FRAGMENTATION  /  OVERLAY';
+    echoColor = palette.clay;
+    echoStart = frame < T.algebra_issue ? T.act4_limitations : T.algebra_issue;
+  } else if (frame >= T.act5_dialectics) {
+    echo = frame < T.contours_tin ? '没有万能模型，只有合适表达' : frame < T.landuse_raster ? '等值线与三角网，描述连续表面' : '分类栅格，承载离散对象';
+    echoSub = 'USE THE RIGHT MODEL';
+    echoColor = palette.sage;
+    echoStart = frame < T.contours_tin ? T.act5_dialectics : frame < T.landuse_raster ? T.contours_tin : T.landuse_raster;
+  }
+  const echoIn = spring({ frame: frame - echoStart, fps, config: { damping: 20, stiffness: 100 } });
+
   return (
-    <div
-      style={{
-        position: 'absolute',
-        left: 0,
-        right: 0,
-        top: 60,
-        textAlign: 'center',
-        opacity: fade,
-        transform: `translateY(${(1 - slideIn) * 20}px)`,
-        zIndex: 20,
-        fontFamily: SERIF,
-      }}
-    >
-      <div
-        style={{
-          color: palette.blue,
-          fontFamily: SERIF,
-          fontSize: 24,
-          fontWeight: 700,
-          letterSpacing: 2,
-          marginBottom: 10,
-        }}
-      >
-        {eyebrow}
+    <>
+      <div style={{ position: 'absolute', left: 100, top: 44, width: 1040, opacity: fade, transform: `translateX(${(1 - slideIn) * -24}px)`, zIndex: 20, fontFamily: SERIF }}>
+        <div style={{ color: palette.blue, fontSize: 18, fontWeight: 800, marginBottom: 7, display: 'flex', alignItems: 'center', gap: 12 }}><span style={{ width: 36, height: 2, background: palette.blue }} />{eyebrow}</div>
+        <div style={{ color: palette.ink, fontSize: 42, fontWeight: 800, lineHeight: 1.15, whiteSpace: 'nowrap' }}>{title}</div>
+        <div style={{ color: palette.inkSoft, fontSize: 20, marginTop: 7, fontWeight: 600, whiteSpace: 'nowrap' }}>{subtitle}</div>
       </div>
-
-      <div
-        style={{
-          color: palette.ink,
-          fontFamily: SERIF,
-          fontSize: 60,
-          fontWeight: 700,
-          lineHeight: 1.2,
-          whiteSpace: 'nowrap',
-        }}
-      >
-        {title}
+      <div style={{ position: 'absolute', right: 100, top: 58, width: 650, textAlign: 'right', zIndex: 22, fontFamily: SERIF, opacity: echoIn, transform: `translateY(${(1 - echoIn) * 12}px)` }}>
+        <div style={{ color: echoColor, fontSize: 26, fontWeight: 800 }}>{echo}</div>
+        <div style={{ color: palette.inkSoft, fontFamily: MONO, fontSize: 16, marginTop: 7 }}>{echoSub}</div>
       </div>
-
-      <div
-        style={{
-          color: palette.inkSoft,
-          fontFamily: SERIF,
-          fontSize: 26,
-          marginTop: 12,
-          fontWeight: 600,
-          whiteSpace: 'nowrap',
-        }}
-      >
-        {subtitle}
-      </div>
-    </div>
+    </>
   );
 };
 
@@ -253,6 +193,8 @@ const VectorConstructStage: React.FC<{ frame: number }> = ({ frame }) => {
     fps,
     config: { damping: 14, stiffness: 100 },
   });
+  const lineProgress = interpolate(frame, [T.line_intro, T.line_intro + Math.round(fps * 2.2)], [0, 1], clamp);
+  const polygonProgress = interpolate(frame, [T.polygon_intro, T.polygon_intro + Math.round(fps * 2.8)], [0, 1], clamp);
 
   const p1 = { x: 300, y: 320 };
   const linePoints = [
@@ -507,9 +449,14 @@ const VectorConstructStage: React.FC<{ frame: number }> = ({ frame }) => {
                   strokeWidth="6"
                   strokeLinecap="round"
                   strokeLinejoin="round"
+                  pathLength={1}
+                  strokeDasharray="1"
+                  strokeDashoffset={1 - lineProgress}
                 />
-                {linePoints.map((p, idx) => (
-                  <g key={idx}>
+                {linePoints.map((p, idx) => {
+                  const pointIn = interpolate(lineProgress, [idx / linePoints.length, Math.min(1, idx / linePoints.length + 0.18)], [0, 1], clamp);
+                  return (
+                  <g key={idx} opacity={pointIn} transform={`translate(${p.x} ${p.y}) scale(${0.7 + pointIn * 0.3}) translate(${-p.x} ${-p.y})`}>
                     <circle cx={p.x} cy={p.y} r="10" fill={palette.sage} />
                     <circle
                       cx={p.x}
@@ -530,7 +477,7 @@ const VectorConstructStage: React.FC<{ frame: number }> = ({ frame }) => {
                       折点 V{idx}
                     </text>
                   </g>
-                ))}
+                )})}
               </g>
             )}
 
@@ -542,9 +489,15 @@ const VectorConstructStage: React.FC<{ frame: number }> = ({ frame }) => {
                   stroke={palette.amber}
                   strokeWidth="6"
                   strokeLinejoin="round"
+                  pathLength={1}
+                  strokeDasharray="1"
+                  strokeDashoffset={1 - polygonProgress}
+                  fillOpacity={interpolate(polygonProgress, [0.72, 1], [0, 1], clamp)}
                 />
-                {polyPoints.map((p, idx) => (
-                  <g key={idx}>
+                {polyPoints.map((p, idx) => {
+                  const pointIn = interpolate(polygonProgress, [idx / (polyPoints.length + 1), Math.min(1, idx / (polyPoints.length + 1) + 0.14)], [0, 1], clamp);
+                  return (
+                  <g key={idx} opacity={pointIn} transform={`translate(${p.x} ${p.y}) scale(${0.7 + pointIn * 0.3}) translate(${-p.x} ${-p.y})`}>
                     <circle cx={p.x} cy={p.y} r="10" fill={palette.amber} />
                     <circle
                       cx={p.x}
@@ -565,7 +518,7 @@ const VectorConstructStage: React.FC<{ frame: number }> = ({ frame }) => {
                       端点 P{idx}
                     </text>
                   </g>
-                ))}
+                )})}
                 <path
                   d={`M ${polyPoints[polyPoints.length - 1].x} ${
                     polyPoints[polyPoints.length - 1].y
@@ -576,39 +529,46 @@ const VectorConstructStage: React.FC<{ frame: number }> = ({ frame }) => {
                   stroke={palette.amber}
                   strokeWidth="3"
                   strokeDasharray="6,4"
+                  pathLength={1}
+                  strokeDashoffset={1 - polygonProgress}
+                  opacity={interpolate(polygonProgress, [0.78, 1], [0, 1], clamp)}
                 />
               </g>
             )}
           </svg>
 
-          {isVectorDefine && (
-            <div
-              style={{
-                position: 'absolute',
-                left: '50%',
-                top: '50%',
-                transform: `translate(-50%, -50%) scale(${
-                  0.85 + stampSpring * 0.15
-                }) rotate(-8deg)`,
-                opacity: stampSpring,
-                border: `5px dashed ${palette.amber}`,
-                borderRadius: 18,
-                padding: '16px 36px',
-                color: palette.amber,
-                fontFamily: SERIF,
-                fontSize: 38,
-                fontWeight: 800,
-                background: palette.paperLight + 'f5',
-                boxShadow: `0 12px 36px ${palette.amber}40`,
-                pointerEvents: 'none',
-                zIndex: 30,
-                whiteSpace: 'nowrap',
-                textAlign: 'center',
-              }}
-            >
-              ★ 地理空间要素 ★
-            </div>
-          )}
+          {isVectorDefine && (() => {
+            const breath = Math.sin((frame - T.vector_define) * 0.08);
+            const breathScale = 1 + breath * 0.035;
+            return (
+              <div
+                style={{
+                  position: 'absolute',
+                  left: '50%',
+                  top: '50%',
+                  transform: `translate(-50%, -50%) scale(${
+                    (0.85 + stampSpring * 0.15) * breathScale
+                  }) rotate(-8deg)`,
+                  opacity: stampSpring,
+                  border: `5px dashed ${palette.amber}`,
+                  borderRadius: 18,
+                  padding: '16px 36px',
+                  color: palette.amber,
+                  fontFamily: SERIF,
+                  fontSize: 38,
+                  fontWeight: 800,
+                  background: palette.paperLight + 'f5',
+                  boxShadow: `0 ${12 + breath * 4}px ${36 + breath * 10}px ${palette.amber}50`,
+                  pointerEvents: 'none',
+                  zIndex: 30,
+                  whiteSpace: 'nowrap',
+                  textAlign: 'center',
+                }}
+              >
+                ★ 地理空间要素 ★
+              </div>
+            );
+          })()}
         </div>
 
         <div
@@ -1049,6 +1009,12 @@ const VectorAttributesStage: React.FC<{ frame: number }> = ({ frame }) => {
     fps,
     config: { damping: 18, stiffness: 85 },
   });
+  const linkProgress = interpolate(
+    frame,
+    [T.attr_table + Math.round(fps * 0.35), T.attr_table + Math.round(fps * 1.45)],
+    [0, 1],
+    clamp
+  );
 
   return (
     <div
@@ -1140,6 +1106,32 @@ const VectorAttributesStage: React.FC<{ frame: number }> = ({ frame }) => {
           position: 'relative',
         }}
       >
+        <div
+          style={{
+            position: 'absolute',
+            left: '35.8%',
+            top: '36.8%',
+            width: 62 * linkProgress,
+            height: 2,
+            background: palette.amber,
+            zIndex: 12,
+            boxShadow: `0 0 10px ${palette.amber}55`,
+            opacity: linkProgress,
+          }}
+        >
+          <div
+            style={{
+              position: 'absolute',
+              right: -3,
+              top: -4,
+              width: 10,
+              height: 10,
+              borderRadius: '50%',
+              background: palette.amber,
+              transform: `scale(${0.7 + linkProgress * 0.3})`,
+            }}
+          />
+        </div>
         <div
           style={{
             flex: 0.8,
@@ -1355,7 +1347,17 @@ const VectorAttributesStage: React.FC<{ frame: number }> = ({ frame }) => {
                 owner: '市轨道交通局',
                 highlight: false,
               },
-            ].map((row, idx) => (
+            ].map((row, idx) => {
+              const rowIn = interpolate(
+                frame,
+                [
+                  T.attr_table + Math.round(fps * (0.35 + idx * 0.12)),
+                  T.attr_table + Math.round(fps * (0.75 + idx * 0.12)),
+                ],
+                [0, 1],
+                clamp
+              );
+              return (
               <div
                 key={idx}
                 style={{
@@ -1373,6 +1375,9 @@ const VectorAttributesStage: React.FC<{ frame: number }> = ({ frame }) => {
                       : palette.inkSoft + '0d',
                   borderBottom: `1px solid ${palette.ink}15`,
                   color: row.highlight ? palette.ink : palette.inkSoft,
+                  opacity: rowIn,
+                  transform: `translateX(${(1 - rowIn) * 18}px)`,
+                  boxShadow: row.highlight && linkProgress > 0.85 ? `inset 4px 0 0 ${palette.amber}` : 'none',
                 }}
               >
                 <span style={{ fontFamily: MONO }}>{row.fid}</span>
@@ -1382,7 +1387,7 @@ const VectorAttributesStage: React.FC<{ frame: number }> = ({ frame }) => {
                 <span style={{ fontFamily: MONO }}>{row.height}</span>
                 <span>{row.owner}</span>
               </div>
-            ))}
+            )})}
           </div>
 
           <div
@@ -1412,6 +1417,11 @@ const VectorLimitationsStage: React.FC<{ frame: number }> = ({ frame }) => {
     frame: relFrame,
     fps,
     config: { damping: 20, stiffness: 80 },
+  });
+  const comparisonIn = spring({
+    frame: frame - T.algebra_issue,
+    fps,
+    config: { damping: 20, stiffness: 90 },
   });
 
   return (
@@ -1516,7 +1526,14 @@ const VectorLimitationsStage: React.FC<{ frame: number }> = ({ frame }) => {
           >
             <svg viewBox="0 0 400 240" style={{ width: '100%', height: '100%' }}>
               {Array.from({ length: 8 }).map((_, i) =>
-                Array.from({ length: 6 }).map((_, j) => (
+                Array.from({ length: 6 }).map((_, j) => {
+                  const tileIn = interpolate(
+                    relFrame,
+                    [Math.round(fps * (0.25 + (i + j) * 0.055)), Math.round(fps * (0.62 + (i + j) * 0.055))],
+                    [0, 1],
+                    clamp
+                  );
+                  return (
                   <polygon
                     key={`${i}-${j}`}
                     points={`${i * 50 + (j % 2) * 10},${j * 40} ${
@@ -1527,8 +1544,10 @@ const VectorLimitationsStage: React.FC<{ frame: number }> = ({ frame }) => {
                     fill={`rgba(153, 91, 73, ${0.1 + ((i + j) % 5) * 0.15})`}
                     stroke={palette.clay}
                     strokeWidth="1"
+                    opacity={tileIn}
+                    transform={`translate(${i * 50 + 25} ${j * 40 + 20}) scale(${0.88 + tileIn * 0.12}) translate(${-i * 50 - 25} ${-j * 40 - 20})`}
                   />
-                ))
+                )})
               )}
             </svg>
           </div>
@@ -1555,6 +1574,8 @@ const VectorLimitationsStage: React.FC<{ frame: number }> = ({ frame }) => {
             display: 'flex',
             flexDirection: 'column',
             gap: 16,
+            opacity: comparisonIn,
+            transform: `translateX(${(1 - comparisonIn) * 24}px)`,
           }}
         >
           <div
@@ -1653,6 +1674,17 @@ const VectorDialecticsStage: React.FC<{ frame: number }> = ({ frame }) => {
     frame: relFrame,
     fps,
     config: { damping: 20, stiffness: 80 },
+  });
+  const contourProgress = interpolate(
+    frame,
+    [T.contours_tin, T.contours_tin + Math.round(fps * 2.2)],
+    [0, 1],
+    clamp
+  );
+  const tinProgress = spring({
+    frame: frame - T.contours_tin - Math.round(fps * 0.45),
+    fps,
+    config: { damping: 18, stiffness: 85 },
   });
 
   return (
@@ -1807,6 +1839,9 @@ const VectorDialecticsStage: React.FC<{ frame: number }> = ({ frame }) => {
                   stroke={palette.blue}
                   strokeWidth="1.5"
                   strokeDasharray="4,3"
+                  pathLength={1}
+                  strokeDashoffset={1 - contourProgress}
+                  fillOpacity={interpolate(contourProgress, [0.1, 0.55], [0, 1], clamp)}
                 />
 
                 {/* Level 2: 200m Contour & Fill */}
@@ -1815,6 +1850,10 @@ const VectorDialecticsStage: React.FC<{ frame: number }> = ({ frame }) => {
                   fill="#d4e6cd"
                   stroke={palette.blue}
                   strokeWidth="2"
+                  pathLength={1}
+                  strokeDasharray="1"
+                  strokeDashoffset={1 - interpolate(contourProgress, [0.16, 0.68], [0, 1], clamp)}
+                  fillOpacity={interpolate(contourProgress, [0.3, 0.68], [0, 1], clamp)}
                 />
 
                 {/* Level 3: 300m Contour & Fill */}
@@ -1823,6 +1862,10 @@ const VectorDialecticsStage: React.FC<{ frame: number }> = ({ frame }) => {
                   fill="#f1dfbe"
                   stroke={palette.blue}
                   strokeWidth="2.5"
+                  pathLength={1}
+                  strokeDasharray="1"
+                  strokeDashoffset={1 - interpolate(contourProgress, [0.34, 0.84], [0, 1], clamp)}
+                  fillOpacity={interpolate(contourProgress, [0.48, 0.84], [0, 1], clamp)}
                 />
 
                 {/* Level 4: 400m Summit Contour */}
@@ -1831,29 +1874,43 @@ const VectorDialecticsStage: React.FC<{ frame: number }> = ({ frame }) => {
                   fill="#e8c895"
                   stroke={palette.blue}
                   strokeWidth="3"
+                  pathLength={1}
+                  strokeDasharray="1"
+                  strokeDashoffset={1 - interpolate(contourProgress, [0.52, 1], [0, 1], clamp)}
+                  fillOpacity={interpolate(contourProgress, [0.68, 1], [0, 1], clamp)}
                 />
 
                 {/* Summit Peak Marker */}
-                <polygon points="106,90 111,98 101,98" fill={palette.clay} />
-                <circle cx="106" cy="95" r="2" fill={palette.paperLight} />
+                <g opacity={interpolate(contourProgress, [0.78, 0.98], [0, 1], clamp)}>
+                  <polygon points="106,90 111,98 101,98" fill={palette.clay} />
+                  <circle cx="106" cy="95" r="2" fill={palette.paperLight} />
+                </g>
 
                 {/* Clean Elevation Text Badges Distributed along Contours */}
                 <g fontFamily={SERIF} fontSize="11" fontWeight="700" fill={palette.blue}>
                   {/* 100m Base */}
-                  <rect x="22" y="112" width="38" height="16" rx="3" fill={palette.paperLight} stroke={palette.blue} strokeWidth="0.8" />
-                  <text x="25" y="124">100m</text>
+                  <g opacity={interpolate(contourProgress, [0.25, 0.45], [0, 1], clamp)}>
+                    <rect x="22" y="112" width="38" height="16" rx="3" fill={palette.paperLight} stroke={palette.blue} strokeWidth="0.8" />
+                    <text x="25" y="124">100m</text>
+                  </g>
 
                   {/* 200m Mid */}
-                  <rect x="36" y="86" width="38" height="16" rx="3" fill={palette.paperLight} stroke={palette.blue} strokeWidth="0.8" />
-                  <text x="39" y="98">200m</text>
+                  <g opacity={interpolate(contourProgress, [0.42, 0.62], [0, 1], clamp)}>
+                    <rect x="36" y="86" width="38" height="16" rx="3" fill={palette.paperLight} stroke={palette.blue} strokeWidth="0.8" />
+                    <text x="39" y="98">200m</text>
+                  </g>
 
                   {/* 300m High */}
-                  <rect x="42" y="60" width="38" height="16" rx="3" fill={palette.paperLight} stroke={palette.blue} strokeWidth="0.8" />
-                  <text x="45" y="72">300m</text>
+                  <g opacity={interpolate(contourProgress, [0.60, 0.78], [0, 1], clamp)}>
+                    <rect x="42" y="60" width="38" height="16" rx="3" fill={palette.paperLight} stroke={palette.blue} strokeWidth="0.8" />
+                    <text x="45" y="72">300m</text>
+                  </g>
 
                   {/* 486m Peak */}
-                  <rect x="94" y="66" width="36" height="16" rx="3" fill={palette.clay + '22'} stroke={palette.clay} strokeWidth="0.8" />
-                  <text x="97" y="78" fill={palette.clay} fontSize="11" fontWeight="800">486m</text>
+                  <g opacity={interpolate(contourProgress, [0.78, 0.98], [0, 1], clamp)}>
+                    <rect x="94" y="66" width="36" height="16" rx="3" fill={palette.clay + '22'} stroke={palette.clay} strokeWidth="0.8" />
+                    <text x="97" y="78" fill={palette.clay} fontSize="11" fontWeight="800">486m</text>
+                  </g>
                 </g>
               </svg>
             </div>
@@ -1880,7 +1937,13 @@ const VectorDialecticsStage: React.FC<{ frame: number }> = ({ frame }) => {
 
               <svg viewBox="0 0 210 200" style={{ width: '100%', height: '100%' }}>
                 {/* Shaded 3D Delaunay Triangular Facets */}
-                <g stroke={palette.amber} strokeWidth="1.5" strokeLinejoin="round">
+                <g
+                  stroke={palette.amber}
+                  strokeWidth="1.5"
+                  strokeLinejoin="round"
+                  opacity={tinProgress}
+                  transform={`translate(105 110) scale(${0.92 + tinProgress * 0.08}) translate(-105 -110)`}
+                >
                   {/* Facet 1 (Lit peak facet) */}
                   <polygon points="105,40 45,95 105,100" fill="#f5eedc" />
                   {/* Facet 2 (Top-right facet) */}
@@ -1913,8 +1976,10 @@ const VectorDialecticsStage: React.FC<{ frame: number }> = ({ frame }) => {
                   { x: 20, y: 140 },
                   { x: 100, y: 185 },
                   { x: 170, y: 180 },
-                ].map((node, i) => (
-                  <g key={i}>
+                ].map((node, i) => {
+                  const nodeIn = interpolate(tinProgress, [i * 0.055, Math.min(1, i * 0.055 + 0.38)], [0, 1], clamp);
+                  return (
+                  <g key={i} opacity={nodeIn} transform={`translate(${node.x} ${node.y}) scale(${0.6 + nodeIn * 0.4}) translate(${-node.x} ${-node.y})`}>
                     <circle
                       cx={node.x}
                       cy={node.y}
@@ -1932,9 +1997,9 @@ const VectorDialecticsStage: React.FC<{ frame: number }> = ({ frame }) => {
                       />
                     )}
                   </g>
-                ))}
+                )})}
 
-                <g fontFamily={SERIF} fontSize="12" fontWeight="800">
+                <g fontFamily={SERIF} fontSize="12" fontWeight="800" opacity={tinProgress}>
                   <rect x="58" y="16" width="94" height="20" rx="4" fill={palette.paperLight} stroke={palette.clay} strokeWidth="1" />
                   <text x="64" y="30" fill={palette.clay}>顶点 (X, Y, Z)</text>
                 </g>
@@ -2045,7 +2110,19 @@ const VectorDialecticsStage: React.FC<{ frame: number }> = ({ frame }) => {
                 { c: '#995b49', label: '建设' },
                 { c: '#995b49', label: '建设' },
                 { c: '#995b49', label: '建设' },
-              ].map((item, idx) => (
+              ].map((item, idx) => {
+                const row = Math.floor(idx / 6);
+                const column = idx % 6;
+                const cellIn = interpolate(
+                  frame,
+                  [
+                    T.landuse_raster + Math.round(fps * (0.06 * (row + column))),
+                    T.landuse_raster + Math.round(fps * (0.34 + 0.06 * (row + column))),
+                  ],
+                  [0, 1],
+                  clamp
+                );
+                return (
                 <div
                   key={idx}
                   style={{
@@ -2058,12 +2135,13 @@ const VectorDialecticsStage: React.FC<{ frame: number }> = ({ frame }) => {
                     fontFamily: SERIF,
                     fontSize: 15,
                     fontWeight: 700,
-                    opacity: 0.92,
+                    opacity: cellIn * 0.92,
+                    transform: `scale(${0.84 + cellIn * 0.16})`,
                   }}
                 >
                   {item.label}
                 </div>
-              ))}
+              )})}
             </div>
           </div>
 

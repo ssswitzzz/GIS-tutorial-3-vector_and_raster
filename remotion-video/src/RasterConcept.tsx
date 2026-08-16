@@ -8,6 +8,7 @@ import {
   useVideoConfig,
 } from 'remotion';
 import { PaperBackground } from './components/PaperBackground';
+import { Latex } from './components/Latex';
 import { clamp, MONO, palette, SERIF } from './theme';
 
 // --- Subtitle Audio Timestamps (60 FPS) ---
@@ -41,71 +42,28 @@ const BottomTracker: React.FC<{ frame: number }> = ({ frame }) => {
             ? 4
             : 5;
 
+  const items = [
+    { id: 1, label: '01. 方块抽象' },
+    { id: 2, label: '02. 栅格本质' },
+    { id: 3, label: '03. 代数优势' },
+    { id: 4, label: '04. 锯齿隐患' },
+    { id: 5, label: '05. 存储告急' },
+  ];
+  const progress = interpolate(frame, [0, T.end], [0, 1], clamp);
+
   return (
-    <div
-      style={{
-        position: 'absolute',
-        left: 0,
-        right: 0,
-        bottom: 36,
-        height: 54,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontFamily: SERIF,
-        zIndex: 50,
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-        {[
-          { id: 1, label: '01. 方块抽象' },
-          { id: 2, label: '02. 栅格本质' },
-          { id: 3, label: '03. 代数优势' },
-          { id: 4, label: '04. 锯齿隐患' },
-          { id: 5, label: '05. 存储告急' },
-        ].map((item) => {
+    <div style={{ position: 'absolute', left: 100, right: 100, bottom: 34, height: 58, fontFamily: SERIF, zIndex: 50 }}>
+      <div style={{ position: 'absolute', left: 0, right: 0, bottom: 5, height: 2, background: palette.ink + '18' }}>
+        <div style={{ width: `${progress * 100}%`, height: '100%', background: palette.amber }} />
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        {items.map((item) => {
           const isActive = act === item.id;
           const isPassed = act > item.id;
           return (
-            <div
-              key={item.id}
-              style={{
-                padding: '10px 24px',
-                borderRadius: 30,
-                background: isActive
-                  ? palette.ink
-                  : isPassed
-                    ? palette.blue + '22'
-                    : 'transparent',
-                color: isActive
-                  ? palette.paperLight
-                  : isPassed
-                    ? palette.blue
-                    : palette.inkSoft + '88',
-                border: `2px solid ${
-                  isActive ? palette.ink : palette.ink + '25'
-                }`,
-                fontSize: 24,
-                fontWeight: 700,
-                whiteSpace: 'nowrap',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 10,
-              }}
-            >
-              <div
-                style={{
-                  width: 10,
-                  height: 10,
-                  borderRadius: '50%',
-                  background: isActive
-                    ? palette.amber
-                    : isPassed
-                      ? palette.blue
-                      : palette.inkSoft + '44',
-                }}
-              />
-              {item.label}
+            <div key={item.id} style={{ color: isActive ? palette.ink : isPassed ? palette.blue : palette.inkSoft + '70', fontSize: isActive ? 21 : 18, fontWeight: isActive ? 800 : 600, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 8, transform: `translateY(${isActive ? 0 : 3}px)` }}>
+              <span style={{ width: isActive ? 10 : 7, height: isActive ? 10 : 7, borderRadius: '50%', background: isActive ? palette.amber : isPassed ? palette.blue : palette.inkSoft + '40' }} />
+              <span>{item.label}</span>
             </div>
           );
         })}
@@ -154,59 +112,49 @@ const CenteredHeadline: React.FC<{ frame: number }> = ({ frame }) => {
   });
   const fade = interpolate(relFrame, [0, Math.round(fps * 0.3)], [0, 1], clamp);
 
+  const stageDuration = frame < T.raster_def
+    ? T.raster_def
+    : frame < T.raster_adv
+      ? T.raster_adv - T.raster_def
+      : frame < T.raster_jaggies
+        ? T.raster_jaggies - T.raster_adv
+        : frame < T.raster_growth
+          ? T.raster_growth - T.raster_jaggies
+          : T.end - T.raster_growth;
+  const stageProgress = interpolate(frame - keyStart, [0, stageDuration], [0, 1], clamp);
+  let echo = stageProgress < 0.42 ? '把连续世界，切成一个个格子' : '格子越小，细节越接近真实';
+  let echoSub = 'CONTINUOUS  →  DISCRETE';
+  let echoColor = palette.blue;
+  if (frame >= T.raster_def && frame < T.raster_adv) {
+    echo = stageProgress < 0.45 ? '每个像元，都有确定的行与列' : '一次计算，直接定位目标像元';
+    echoSub = 'ROW  ×  COLUMN  /  O(1)';
+  } else if (frame >= T.raster_adv && frame < T.raster_jaggies) {
+    echo = stageProgress < 0.45 ? '连续现象，天然适合规则矩阵' : '像元对齐，图层即可逐格运算';
+    echoSub = 'LAYER A  +  LAYER B  =  RESULT';
+  } else if (frame >= T.raster_jaggies && frame < T.raster_growth) {
+    echo = stageProgress < 0.48 ? '规则格网，也会带来阶梯边界' : '提高分辨率，锯齿逐渐收敛';
+    echoSub = 'COARSE GRID  →  FINE GRID';
+    echoColor = palette.clay;
+  } else if (frame >= T.raster_growth) {
+    echo = stageProgress < 0.42 ? '边长翻倍，像元数量翻四倍' : '精度提升，存储压力同步暴涨';
+    echoSub = 'RESOLUTION  ↑  /  STORAGE  ↑↑';
+    echoColor = palette.amber;
+  }
+  const echoSwitch = Math.floor(stageProgress * 2);
+  const echoIn = spring({ frame: frame - keyStart - echoSwitch * Math.round(stageDuration * 0.5), fps, config: { damping: 20, stiffness: 100 } });
+
   return (
-    <div
-      style={{
-        position: 'absolute',
-        left: 0,
-        right: 0,
-        top: 70,
-        textAlign: 'center',
-        opacity: fade,
-        transform: `translateY(${(1 - slideIn) * 20}px)`,
-        zIndex: 20,
-        fontFamily: SERIF,
-      }}
-    >
-      <div
-        style={{
-          color: palette.blue,
-          fontFamily: SERIF,
-          fontSize: 24,
-          fontWeight: 700,
-          letterSpacing: 2,
-          marginBottom: 10,
-        }}
-      >
-        {eyebrow}
+    <>
+      <div style={{ position: 'absolute', left: 100, top: 44, width: 1120, opacity: fade, transform: `translateX(${(1 - slideIn) * -24}px)`, zIndex: 20, fontFamily: SERIF }}>
+        <div style={{ color: palette.blue, fontSize: 18, fontWeight: 800, marginBottom: 7, display: 'flex', alignItems: 'center', gap: 12 }}><span style={{ width: 36, height: 2, background: palette.blue }} />{eyebrow}</div>
+        <div style={{ color: palette.ink, fontSize: 42, fontWeight: 800, lineHeight: 1.15, whiteSpace: 'nowrap' }}>{title}</div>
+        <div style={{ color: palette.inkSoft, fontSize: 20, marginTop: 7, fontWeight: 600, whiteSpace: 'nowrap' }}>{subtitle}</div>
       </div>
-
-      <div
-        style={{
-          color: palette.ink,
-          fontFamily: SERIF,
-          fontSize: 64,
-          fontWeight: 700,
-          lineHeight: 1.2,
-          whiteSpace: 'nowrap',
-        }}
-      >
-        {title}
+      <div style={{ position: 'absolute', right: 100, top: 58, width: 620, textAlign: 'right', zIndex: 22, fontFamily: SERIF, opacity: echoIn, transform: `translateY(${(1 - echoIn) * 12}px)` }}>
+        <div style={{ color: echoColor, fontSize: 26, fontWeight: 800 }}>{echo}</div>
+        <div style={{ color: palette.inkSoft, fontFamily: MONO, fontSize: 16, marginTop: 7 }}>{echoSub}</div>
       </div>
-
-      <div
-        style={{
-          color: palette.inkSoft,
-          fontFamily: SERIF,
-          fontSize: 26,
-          marginTop: 12,
-          fontWeight: 600,
-          whiteSpace: 'nowrap',
-        }}
-      >
-        {subtitle}
-      </div>
-    </div>
+    </>
   );
 };
 
@@ -230,6 +178,8 @@ const MinecraftStage: React.FC<{ frame: number }> = ({ frame }) => {
   );
 
   const pulse = Math.sin(frame * 0.1) * 4;
+  const coarseReveal = interpolate(frame, [Math.round(fps * 0.4), Math.round(fps * 2.2)], [0, 1], clamp);
+  const fineReveal = interpolate(frame, [Math.round(fps * 2), Math.round(fps * 4.2)], [0, 1], clamp);
 
   return (
     <div
@@ -363,6 +313,7 @@ const MinecraftStage: React.FC<{ frame: number }> = ({ frame }) => {
                     stroke={palette.amber}
                     strokeWidth="2"
                     rx="4"
+                    opacity={interpolate(coarseReveal, [(r + c) / 14, Math.min(1, (r + c) / 14 + 0.35)], [0, 1], clamp)}
                   />
                 );
               })
@@ -417,6 +368,12 @@ const MinecraftStage: React.FC<{ frame: number }> = ({ frame }) => {
                   dist < dynamicGridSize * (0.42 + pulse * 0.01)
                     ? palette.blue + '55'
                     : palette.sage + '35';
+                const cellReveal = interpolate(
+                  fineReveal,
+                  [Math.min(0.78, dist / Math.max(1, dynamicGridSize * 0.95)), Math.min(1, dist / Math.max(1, dynamicGridSize * 0.95) + 0.22)],
+                  [0, 1],
+                  clamp
+                );
                 return (
                   <rect
                     key={`${r}-${c}`}
@@ -427,6 +384,7 @@ const MinecraftStage: React.FC<{ frame: number }> = ({ frame }) => {
                     fill={color}
                     stroke={palette.blue}
                     strokeWidth="0.8"
+                    opacity={cellReveal}
                   />
                 );
               })
@@ -463,6 +421,11 @@ const RasterDefinitionStage: React.FC<{ frame: number }> = ({ frame }) => {
   });
 
   const relFrame = frame - T.raster_def;
+  const formulaIn = spring({
+    frame: relFrame - Math.round(fps * 1.1),
+    fps,
+    config: { damping: 19, stiffness: 90 },
+  });
 
   // Dynamically moving query target cell (gliding gracefully across cells)
   const rowSeq = [1, 2, 3, 4, 3];
@@ -518,7 +481,7 @@ const RasterDefinitionStage: React.FC<{ frame: number }> = ({ frame }) => {
               color: palette.ink,
             }}
           >
-            像元矩阵与 O(1) 空间位置查询
+            像元矩阵与 <Latex math="\mathcal{O}(1)" /> 空间位置查询
           </span>
         </div>
 
@@ -533,7 +496,7 @@ const RasterDefinitionStage: React.FC<{ frame: number }> = ({ frame }) => {
             borderRadius: 20,
           }}
         >
-          查询时间复杂度：O(1)
+          查询时间复杂度：<Latex math="\mathcal{O}(1)" />
         </span>
       </div>
 
@@ -572,8 +535,8 @@ const RasterDefinitionStage: React.FC<{ frame: number }> = ({ frame }) => {
           <div
             style={{
               position: 'absolute',
-              top: 40,
-              bottom: 0,
+              top: 2,
+              height: 378,
               left: -35,
               display: 'flex',
               flexDirection: 'column',
@@ -606,6 +569,12 @@ const RasterDefinitionStage: React.FC<{ frame: number }> = ({ frame }) => {
                     Math.sin(r * 0.8 + c * 0.5 + relFrame * 0.04) * 40 +
                     r * 5
                 );
+                const cellIn = interpolate(
+                  relFrame,
+                  [Math.round(fps * (0.25 + (r + c) * 0.035)), Math.round(fps * (0.6 + (r + c) * 0.035))],
+                  [0, 1],
+                  clamp
+                );
                 return (
                   <g key={`${r}-${c}`}>
                     <rect
@@ -629,6 +598,7 @@ const RasterDefinitionStage: React.FC<{ frame: number }> = ({ frame }) => {
                       }
                       strokeWidth={isTarget || isOrigin ? '3' : '1'}
                       rx="4"
+                      opacity={cellIn}
                     />
                     <text
                       x={c * 48 + 22.5}
@@ -638,6 +608,7 @@ const RasterDefinitionStage: React.FC<{ frame: number }> = ({ frame }) => {
                       fontWeight="700"
                       fill={isTarget ? palette.paperLight : palette.inkSoft}
                       textAnchor="middle"
+                      opacity={cellIn}
                     >
                       {val}
                     </text>
@@ -661,6 +632,8 @@ const RasterDefinitionStage: React.FC<{ frame: number }> = ({ frame }) => {
             justifyContent: 'center',
             gap: 20,
             fontFamily: SERIF,
+            opacity: formulaIn,
+            transform: `translateX(${(1 - formulaIn) * 26}px)`,
           }}
         >
           <div
@@ -687,9 +660,8 @@ const RasterDefinitionStage: React.FC<{ frame: number }> = ({ frame }) => {
               lineHeight: 1.6,
             }}
           >
-            目标坐标 X = 基准原点 X ＋ 列号 × 像元大小
-            <br />
-            目标坐标 Y = 基准原点 Y － 行号 × 像元大小
+            <Latex math="X = X_0 + c \cdot s" inline={false} />
+            <Latex math="Y = Y_0 - r \cdot s" inline={false} />
           </div>
 
           <div
@@ -710,7 +682,7 @@ const RasterDefinitionStage: React.FC<{ frame: number }> = ({ frame }) => {
               </span>
             </div>
             <div style={{ color: palette.amber, fontWeight: 700, marginTop: 6 }}>
-              ⚡ 直接通过行号与列号数学计算，无需逐项查找，复杂度为 O(1)！
+              ⚡ 直接通过行号与列号数学计算，无需逐项查找，复杂度为 <Latex math="\mathcal{O}(1)" />！
             </div>
           </div>
         </div>
@@ -734,6 +706,9 @@ const RasterAdvantagesStage: React.FC<{ frame: number }> = ({ frame }) => {
 
   const relFrame = frame - T.raster_adv;
   const activeIdx = Math.floor((relFrame / (fps * 0.4)) % 16);
+  const layerAIn = spring({ frame: relFrame, fps, config: { damping: 19, stiffness: 90 } });
+  const layerBIn = spring({ frame: relFrame - Math.round(fps * 0.45), fps, config: { damping: 19, stiffness: 90 } });
+  const resultIn = spring({ frame: relFrame - Math.round(fps * 1.15), fps, config: { damping: 19, stiffness: 90 } });
 
   return (
     <div
@@ -828,6 +803,8 @@ const RasterAdvantagesStage: React.FC<{ frame: number }> = ({ frame }) => {
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
+            opacity: layerAIn,
+            transform: `translateY(${(1 - layerAIn) * 18}px)`,
           }}
         >
           <div
@@ -899,6 +876,8 @@ const RasterAdvantagesStage: React.FC<{ frame: number }> = ({ frame }) => {
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
+            opacity: layerBIn,
+            transform: `translateY(${(1 - layerBIn) * 18}px)`,
           }}
         >
           <div
@@ -971,6 +950,8 @@ const RasterAdvantagesStage: React.FC<{ frame: number }> = ({ frame }) => {
             flexDirection: 'column',
             alignItems: 'center',
             boxShadow: `0 12px 30px ${palette.amber}25`,
+            opacity: resultIn,
+            transform: `translateY(${(1 - resultIn) * 18}px)`,
           }}
         >
           <div
@@ -1002,6 +983,7 @@ const RasterAdvantagesStage: React.FC<{ frame: number }> = ({ frame }) => {
                       stroke={palette.amber}
                       strokeWidth={isCurrent ? '4' : '2.5'}
                       rx="4"
+                      opacity={0.35 + resultIn * 0.65}
                     />
                     <text
                       x={c * 52 + 24}
@@ -1053,6 +1035,12 @@ const RasterJaggiesStage: React.FC<{ frame: number }> = ({ frame }) => {
     frame: frame - T.raster_jaggies,
     fps,
     config: { damping: 20, stiffness: 80 },
+  });
+  const relFrame = frame - T.raster_jaggies;
+  const highResIn = spring({
+    frame: relFrame - Math.round(fps * 2.2),
+    fps,
+    config: { damping: 20, stiffness: 90 },
   });
 
   return (
@@ -1188,6 +1176,12 @@ const RasterJaggiesStage: React.FC<{ frame: number }> = ({ frame }) => {
                 const dy = (r - 2.5) * 38;
                 const inCircle = Math.sqrt(dx * dx + dy * dy) <= 105;
                 if (!inCircle) return null;
+                const cellIn = interpolate(
+                  relFrame,
+                  [Math.round(fps * (0.25 + (r + c) * 0.045)), Math.round(fps * (0.55 + (r + c) * 0.045))],
+                  [0, 1],
+                  clamp
+                );
                 return (
                   <rect
                     key={`low-${r}-${c}`}
@@ -1199,6 +1193,7 @@ const RasterJaggiesStage: React.FC<{ frame: number }> = ({ frame }) => {
                     stroke={palette.clay}
                     strokeWidth="2"
                     rx="2"
+                    opacity={cellIn}
                   />
                 );
               })
@@ -1240,6 +1235,8 @@ const RasterJaggiesStage: React.FC<{ frame: number }> = ({ frame }) => {
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
+            opacity: highResIn,
+            transform: `translateX(${(1 - highResIn) * 28}px)`,
           }}
         >
           <div
@@ -1283,6 +1280,12 @@ const RasterJaggiesStage: React.FC<{ frame: number }> = ({ frame }) => {
                 const dy = (r - 8.5) * 13;
                 const inCircle = Math.sqrt(dx * dx + dy * dy) <= 105;
                 if (!inCircle) return null;
+                const cellIn = interpolate(
+                  highResIn,
+                  [Math.min(0.78, (r + c) / 44), Math.min(1, (r + c) / 44 + 0.2)],
+                  [0, 1],
+                  clamp
+                );
                 return (
                   <rect
                     key={`high-${r}-${c}`}
@@ -1294,6 +1297,7 @@ const RasterJaggiesStage: React.FC<{ frame: number }> = ({ frame }) => {
                     stroke={palette.blue}
                     strokeWidth="0.8"
                     rx="1"
+                    opacity={cellIn}
                   />
                 );
               })
@@ -1346,6 +1350,11 @@ const RasterGrowthStage: React.FC<{ frame: number }> = ({ frame }) => {
   // Dynamic quadratic curve point tracer: y = s^2
   const currentS = 1 + progress * 3; // 1 to 4
   const currentVal = Math.pow(currentS, 2); // 1 to 16
+  const storageIn = spring({
+    frame: relFrame - Math.round(fps * 2.8),
+    fps,
+    config: { damping: 20, stiffness: 85 },
+  });
 
   return (
     <div
@@ -1394,7 +1403,7 @@ const RasterGrowthStage: React.FC<{ frame: number }> = ({ frame }) => {
               color: palette.ink,
             }}
           >
-            分辨率翻倍 → 数据量呈平方级 O(N²) 爆炸式增长！
+            分辨率翻倍 → 数据量呈平方级 <Latex math="\mathcal{O}(N^2)" /> 爆炸式增长！
           </span>
         </div>
 
@@ -1422,7 +1431,6 @@ const RasterGrowthStage: React.FC<{ frame: number }> = ({ frame }) => {
           alignItems: 'center',
         }}
       >
-        {/* Left: O(N^2) Curve Plot */}
         <div
           style={{
             flex: 1.1,
@@ -1434,6 +1442,7 @@ const RasterGrowthStage: React.FC<{ frame: number }> = ({ frame }) => {
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
+            justifyContent: 'center',
           }}
         >
           <div
@@ -1445,77 +1454,200 @@ const RasterGrowthStage: React.FC<{ frame: number }> = ({ frame }) => {
               marginBottom: 12,
             }}
           >
-            像元数据量增长曲线 (y = s²)
+            像元数据量增长曲线（<Latex math="y=s^2" />）
           </div>
 
-          <svg width="340" height="240" viewBox="0 0 340 240">
-            {/* Axes */}
-            <line
-              x1="40"
-              y1="200"
-              x2="320"
-              y2="200"
-              stroke={palette.ink}
-              strokeWidth="3"
-            />
-            <line
-              x1="40"
-              y1="20"
-              x2="40"
-              y2="200"
-              stroke={palette.ink}
-              strokeWidth="3"
-            />
+          {(() => {
+            // Chart area dimensions
+            const svgW = 380;
+            const svgH = 320;
+            const padL = 70; // left padding for y-axis labels
+            const padR = 30;
+            const padT = 30;
+            const padB = 50; // bottom padding for x-axis labels
 
-            {/* Labels */}
-            <text
-              x="320"
-              y="225"
-              fontFamily={SERIF}
-              fontSize="16"
-              fontWeight="700"
-              fill={palette.inkSoft}
-            >
-              分辨率倍率 s
-            </text>
-            <text
-              x="10"
-              y="25"
-              fontFamily={SERIF}
-              fontSize="16"
-              fontWeight="700"
-              fill={palette.amber}
-            >
-              数据量 (s²)
-            </text>
+            const plotW = svgW - padL - padR; // 280
+            const plotH = svgH - padT - padB; // 240
 
-            {/* Quadratic Curve Path */}
-            <path
-              d="M 40 200 Q 180 190 300 30"
-              fill="none"
-              stroke={palette.amber}
-              strokeWidth="5"
-            />
+            // Data range: s from 1 to 4, y = s² from 1 to 16
+            const sMin = 1;
+            const sMax = 4;
+            const yMin = 0;
+            const yMax = 16;
 
-            {/* Dynamic Tracer Point along Curve */}
-            {(() => {
-              const cx = 40 + (currentS - 1) * (260 / 3);
-              const cy = 200 - (currentVal - 1) * (170 / 15);
-              return (
-                <g>
-                  <circle cx={cx} cy={cy} r="8" fill={palette.amber} />
-                  <circle
-                    cx={cx}
-                    cy={cy}
-                    r="16"
-                    fill="none"
-                    stroke={palette.amber}
-                    strokeWidth="2"
+            // Map data to pixel coordinates
+            const toX = (s: number) =>
+              padL + ((s - sMin) / (sMax - sMin)) * plotW;
+            const toY = (y: number) =>
+              padT + plotH - ((y - yMin) / (yMax - yMin)) * plotH;
+
+            // Generate smooth curve points
+            const curvePoints: string[] = [];
+            for (let i = 0; i <= 60; i++) {
+              const s = sMin + (i / 60) * (sMax - sMin);
+              const y = s * s;
+              curvePoints.push(`${toX(s).toFixed(1)},${toY(y).toFixed(1)}`);
+            }
+            const polylineStr = curvePoints.join(' ');
+
+            // Tracer dot position (on the exact same curve)
+            const dotX = toX(currentS);
+            const dotY = toY(currentVal);
+
+            // Axis ticks
+            const xTicks = [1, 2, 3, 4];
+            const yTicks = [0, 4, 8, 12, 16];
+
+            return (
+              <svg
+                width={svgW}
+                height={svgH}
+                viewBox={`0 0 ${svgW} ${svgH}`}
+              >
+                {/* Grid lines */}
+                {yTicks.map((v) => (
+                  <line
+                    key={`gy-${v}`}
+                    x1={padL}
+                    y1={toY(v)}
+                    x2={padL + plotW}
+                    y2={toY(v)}
+                    stroke={palette.ink + '12'}
+                    strokeWidth="1"
                   />
-                </g>
-              );
-            })()}
-          </svg>
+                ))}
+                {xTicks.map((v) => (
+                  <line
+                    key={`gx-${v}`}
+                    x1={toX(v)}
+                    y1={padT}
+                    x2={toX(v)}
+                    y2={padT + plotH}
+                    stroke={palette.ink + '12'}
+                    strokeWidth="1"
+                  />
+                ))}
+
+                {/* Axes */}
+                <line
+                  x1={padL}
+                  y1={padT + plotH}
+                  x2={padL + plotW}
+                  y2={padT + plotH}
+                  stroke={palette.ink}
+                  strokeWidth="2.5"
+                />
+                <line
+                  x1={padL}
+                  y1={padT}
+                  x2={padL}
+                  y2={padT + plotH}
+                  stroke={palette.ink}
+                  strokeWidth="2.5"
+                />
+
+                {/* X-axis ticks & labels */}
+                {xTicks.map((v) => (
+                  <g key={`xt-${v}`}>
+                    <line
+                      x1={toX(v)}
+                      y1={padT + plotH}
+                      x2={toX(v)}
+                      y2={padT + plotH + 6}
+                      stroke={palette.ink}
+                      strokeWidth="2"
+                    />
+                    <text
+                      x={toX(v)}
+                      y={padT + plotH + 24}
+                      fontFamily={SERIF}
+                      fontSize="15"
+                      fontWeight="700"
+                      fill={palette.inkSoft}
+                      textAnchor="middle"
+                    >
+                      {v}×
+                    </text>
+                  </g>
+                ))}
+
+                {/* Y-axis ticks & labels */}
+                {yTicks.map((v) => (
+                  <g key={`yt-${v}`}>
+                    <line
+                      x1={padL - 6}
+                      y1={toY(v)}
+                      x2={padL}
+                      y2={toY(v)}
+                      stroke={palette.ink}
+                      strokeWidth="2"
+                    />
+                    <text
+                      x={padL - 12}
+                      y={toY(v) + 5}
+                      fontFamily={SERIF}
+                      fontSize="15"
+                      fontWeight="700"
+                      fill={palette.inkSoft}
+                      textAnchor="end"
+                    >
+                      {v}
+                    </text>
+                  </g>
+                ))}
+
+                {/* Axis titles */}
+                <text
+                  x={padL + plotW / 2}
+                  y={svgH - 4}
+                  fontFamily={SERIF}
+                  fontSize="16"
+                  fontWeight="700"
+                  fill={palette.inkSoft}
+                  textAnchor="middle"
+                >
+                  分辨率倍率 (s)
+                </text>
+                <text
+                  x={16}
+                  y={padT + plotH / 2}
+                  fontFamily={SERIF}
+                  fontSize="16"
+                  fontWeight="700"
+                  fill={palette.amber}
+                  textAnchor="middle"
+                  transform={`rotate(-90, 16, ${padT + plotH / 2})`}
+                >
+                  数据量 (s²)
+                </text>
+
+                {/* Quadratic curve y = s² */}
+                <polyline
+                  points={polylineStr}
+                  fill="none"
+                  stroke={palette.amber}
+                  strokeWidth="4"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  pathLength={1}
+                  strokeDasharray="1"
+                  strokeDashoffset={1 - progress}
+                />
+
+                {/* Tracer dot — exactly on the curve */}
+                <circle cx={dotX} cy={dotY} r="8" fill={palette.amber} />
+                <circle
+                  cx={dotX}
+                  cy={dotY}
+                  r="16"
+                  fill="none"
+                  stroke={palette.amber}
+                  strokeWidth="2"
+                  opacity="0.5"
+                />
+              </svg>
+            );
+          })()}
         </div>
 
         {/* Right: Data Multiplier Progress & GeoTIFF Alert Card */}
@@ -1620,6 +1752,8 @@ const RasterGrowthStage: React.FC<{ frame: number }> = ({ frame }) => {
               fontSize: 22,
               color: palette.ink,
               lineHeight: 1.5,
+              opacity: storageIn,
+              transform: `translateY(${(1 - storageIn) * 14}px)`,
             }}
           >
             ⚠️ <span style={{ color: palette.amber, fontWeight: 700 }}>GeoTIFF 存储告急</span>：一个 GeoTIFF 文件常同时存储多波段图像（如红外、近红外等），电脑存储空间分分钟告急！
@@ -1644,7 +1778,7 @@ const RasterConcept: React.FC = () => {
       : 'sage';
 
   return (
-    <AbsoluteFill style={{ fontFamily: SERIF, background: palette.paper }}>
+    <AbsoluteFill style={{ fontFamily: SERIF, background: palette.paper }} from={-283}>
       <div
         style={{
           width: 1920,
