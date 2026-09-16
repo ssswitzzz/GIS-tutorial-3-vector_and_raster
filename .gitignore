@@ -4,6 +4,60 @@
 *.mp3
 *.wav
 *.m4a
+*.mp4
+*.mov
+*.webm
+*.apng
+*.gif
+*.webp
+*.pdf
+*.ai
+*.log
+
+# Skills and agents
+.agents/
+video-motion-design/
+
+# Covers & local preview assets
+video_cover.*
+pose_atama_kakaeru_man.png
+封面*
+演示文稿*
+
+# Unused public assets
+remotion-video/public/CurrencyExchangeScene.mp4
+remotion-video/public/ProjectRasterSceneTimed.mp4
+remotion-video/public/Thinking.json
+remotion-video/public/Thumbs up.*
+remotion-video/public/angry_face.mov
+remotion-video/public/bell.mov
+remotion-video/public/book_hirameki_keihatsu_woman.png
+remotion-video/public/checkmark.mov
+remotion-video/public/clapping_hands.mov
+remotion-video/public/crying_face.mov
+remotion-video/public/earth.json
+remotion-video/public/error.mov
+remotion-video/public/face_angry_woman3.png
+remotion-video/public/face_smile_woman2.png
+remotion-video/public/face_smile_woman4.png
+remotion-video/public/fire.mov
+remotion-video/public/glowing_star.mov
+remotion-video/public/heart_eyes_face.mov
+remotion-video/public/laughing_face.mov
+remotion-video/public/loading.mov
+remotion-video/public/manim/
+remotion-video/public/partying_face.mov
+remotion-video/public/pleading_face.mov
+remotion-video/public/poo.mov
+remotion-video/public/rocket.mov
+remotion-video/public/school_kokuban_happyou_tenkousei_kinchou_boy.png
+remotion-video/public/search.mov
+remotion-video/public/sunglasses_face.mov
+remotion-video/public/surprised_face.mov
+remotion-video/public/thinking_face.mov
+remotion-video/public/thumbs_up_noto.mov
+remotion-video/public/warning.mov
+
 3视频配音/
 .venv/
 __pycache__/
@@ -16,3 +70,4 @@ PixPin_*.png
 preview-*.png
 comp-frame-*.png
 .DS_Store
+
